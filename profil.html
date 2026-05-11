@@ -94,6 +94,31 @@
                 loadOnerilenStajlar();
                 loadStajyerBasvurulari(user.id);
             }
+            
+            // Form Gönderim İşlemi
+            const profilForm = document.getElementById('profilGuncelleForm');
+            if (profilForm) {
+                profilForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btn = document.getElementById('btnProfilKaydet');
+                    btn.textContent = 'Kaydediliyor...';
+                    btn.disabled = true;
+
+                    const yetenekler = document.getElementById('profYetenekler').value;
+                    const bio = document.getElementById('profBio').value;
+                    const link = document.getElementById('profLink').value;
+
+                    try {
+                        await API.profilGuncelle(user.id, bio, yetenekler, link);
+                        alert('Profil bilgileriniz başarıyla güncellendi!');
+                    } catch (error) {
+                        alert('Güncelleme sırasında hata oluştu: ' + error.message);
+                    } finally {
+                        btn.textContent = 'Bilgileri Kaydet';
+                        btn.disabled = false;
+                    }
+                });
+            }
         });
 
         async function loadOnerilenStajlar() {
