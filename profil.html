@@ -28,6 +28,27 @@
 
             <!-- STAJYER GÖRÜNÜMÜ -->
             <div id="stajyerView" style="display: none;">
+                
+                <!-- Profil Düzenleme Formu -->
+                <div class="profile-edit-section" style="margin-bottom: 30px; background: #222428; padding: 20px; border-radius: 12px; border: 1px solid #3e3e42;">
+                    <h2 style="margin-bottom: 15px; color: #e2e8f0; font-size: 1.2rem;">Yetenek & Profil Bilgileri (Eşleşme İçin)</h2>
+                    <form id="profilGuncelleForm">
+                        <div class="input-group">
+                            <label for="profYetenekler">Yetenekleriniz (Virgülle ayırın, örn: HTML, CSS, React, Python)</label>
+                            <input type="text" id="profYetenekler" placeholder="Örn: JavaScript, Figma, Veri Analizi">
+                        </div>
+                        <div class="input-group">
+                            <label for="profBio">Kısa Biyografi / Hakkımda</label>
+                            <input type="text" id="profBio" placeholder="Kendinizden kısaca bahsedin...">
+                        </div>
+                        <div class="input-group">
+                            <label for="profLink">Portfolyo / LinkedIn Linki</label>
+                            <input type="url" id="profLink" placeholder="https://linkedin.com/in/...">
+                        </div>
+                        <button type="submit" class="btn-primary" id="btnProfilKaydet" style="width: auto; padding: 10px 20px; margin-top: 5px;">Bilgileri Kaydet</button>
+                    </form>
+                </div>
+
                 <h2 style="margin-bottom: 15px; color: #e2e8f0; font-size: 1.4rem;">Başvurulan İlanlar</h2>
                 <div class="applied-jobs" id="appliedJobsList">
                     <p style="color: #9ca3af;">Başvurularınız yükleniyor...</p>
@@ -75,7 +96,40 @@
                 document.getElementById('adminView').style.display = 'block';
             } else {
                 document.getElementById('stajyerView').style.display = 'block';
+                
+                // Form alanlarını doldur
+                if (document.getElementById('profYetenekler')) {
+                    document.getElementById('profYetenekler').value = user.yetenekler || '';
+                    document.getElementById('profBio').value = user.bio || '';
+                    document.getElementById('profLink').value = user.link || '';
+                }
+
                 loadStajyerBasvurulari(user.id);
+            }
+            
+            // Form Gönderim İşlemi
+            const profilForm = document.getElementById('profilGuncelleForm');
+            if (profilForm) {
+                profilForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btn = document.getElementById('btnProfilKaydet');
+                    btn.textContent = 'Kaydediliyor...';
+                    btn.disabled = true;
+
+                    const yetenekler = document.getElementById('profYetenekler').value;
+                    const bio = document.getElementById('profBio').value;
+                    const link = document.getElementById('profLink').value;
+
+                    try {
+                        await API.profilGuncelle(user.id, bio, yetenekler, link);
+                        alert('Profil bilgileriniz başarıyla güncellendi!');
+                    } catch (error) {
+                        alert('Güncelleme sırasında hata oluştu: ' + error.message);
+                    } finally {
+                        btn.textContent = 'Bilgileri Kaydet';
+                        btn.disabled = false;
+                    }
+                });
             }
         });
 
