@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // İlan HTML'ini oluştur
     function renderIlanlar(ilanlar) {
         listesiContainer.innerHTML = '';
+        const user = API.getCurrentUser();
 
         if (ilanlar.length === 0) {
             listesiContainer.innerHTML = '<div class="loading">Kriterlerinize uygun ilan bulunamadı.</div>';
@@ -45,10 +46,45 @@ document.addEventListener('DOMContentLoaded', () => {
         ilanlar.forEach(ilan => {
             const card = document.createElement('div');
             card.className = 'job-card';
+
+            // Eşleşme Oranı Hesaplama/Simülasyonu (SCRUM-25)
+            // Backend'den matchRate gelirse onu kullanır, gelmezse kullanıcı yeteneklerine göre simüle eder
+            let matchRate = ilan.matchRate;
+            
+            if (matchRate === undefined && user && user.rol === 'ogrenci') {
+                // Basit bir simülasyon: Pozisyon veya detayda kullanıcının yeteneklerinden biri geçiyorsa yüksek ver
+                const yetenekler = (user.yetenekler || '').toLowerCase();
+                const ilanIcerik = (ilan.pozisyon + ' ' + ilan.detay).toLowerCase();
+                
+                if (yetenekler && ilanIcerik) {
+                    const matchCount = yetenekler.split(',').filter(y => ilanIcerik.includes(y.trim())).length;
+                    if (matchCount > 0) {
+                        matchRate = Math.min(70 + (matchCount * 10), 98);
+                    } else {
+                        matchRate = Math.floor(Math.random() * 20) + 40; // %40-60 arası rastgele
+                    }
+                } else {
+                    matchRate = Math.floor(Math.random() * 30) + 50; // %50-80 arası rastgele
+                }
+            }
+
+            let matchHtml = '';
+            if (user && user.rol === 'ogrenci' && matchRate !== undefined) {
+                matchHtml = `
+                    <div class="match-rate-container" title="Yetenekleriniz ve profil bilgileriniz bu ilanla karşılaştırıldı.">
+                        <div class="match-progress-bg">
+                            <div class="match-progress-fill" style="width: ${matchRate}%"></div>
+                        </div>
+                        <span class="match-rate-label">Yetenekleriniz bu ilanla <span class="match-rate-value">%${matchRate}</span> uyuşuyor</span>
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
                 <div class="job-info">
                     <h3>${ilan.pozisyon}</h3>
                     <p>${ilan.sirket_adi} • ${ilan.lokasyon} (${ilan.calisma_sekli})</p>
+                    ${matchHtml}
                     <span class="job-date">Yayınlanma: ${ilan.tarih}</span>
                 </div>
                 <button class="btn-details" onclick="openDetay(${ilan.id})">Detayları Gör</button>
