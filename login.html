@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Akıllı Staj Programı | Giriş Yap</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">Akıllı Staj Programı </a>
+            <ul class="nav-links">
+                <!-- auth.js tarafından doldurulacak -->
+            </ul>
+        </div>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <h2 style="text-align: center; margin-bottom: 20px;">Giriş Yap</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>E-posta veya Kullanıcı Adı</label>
+                    <input type="text" id="loginEmail" placeholder="admin veya e-posta girin" required>
+                </div>
+                <div class="input-group">
+                    <label>Şifre</label>
+                    <input type="password" id="loginPassword" placeholder="********" required>
+                </div>
+                <button type="submit" class="btn-primary">Giriş Yap</button>
+            </form>
+            <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                Hesabın yok mu? <a href="register.html" style="color: #2563EB;">Kayıt Ol</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const sifre = document.getElementById('loginPassword').value;
+
+            try {
+                await API.login(email, sifre);
+                window.location.href = 'index.html';
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>

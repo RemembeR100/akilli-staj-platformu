@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Akıllı Staj Programı | İlan Yayınla</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">Akıllı Staj Programı </a>
+            <ul class="nav-links">
+                <!-- auth.js tarafından doldurulacak -->
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top: 50px;">
+        <div class="profile-card" style="max-width: 800px; margin: 0 auto;">
+            <h1 class="page-title" style="text-align: left; margin-bottom: 20px;">Yeni İlan Yayınla</h1>
+            <p style="color: #9ca3af; margin-bottom: 30px;">Kurumsal hesabınızla yeni bir stajyer arayışınızı buradan başlatın.</p>
+            
+            <form id="ilanEkleForm">
+                <div class="input-group">
+                    <label>Pozisyon Adı</label>
+                    <input type="text" id="ilanPozisyon" placeholder="Örn: Yapay Zeka Stajyeri" required>
+                </div>
+                <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                    <div class="input-group" style="flex:1; min-width: 200px;">
+                        <label>Lokasyon (İl Seçiniz)</label>
+                        <!-- 81 il datalist ile -->
+                        <input type="text" id="ilanLokasyon" list="iller" placeholder="Örn: İstanbul (Yazarak filtreleyin)" required autocomplete="off">
+                        <datalist id="iller">
+                            <option value="Adana"><option value="Adıyaman"><option value="Afyonkarahisar"><option value="Ağrı"><option value="Amasya"><option value="Ankara"><option value="Antalya"><option value="Artvin"><option value="Aydın"><option value="Balıkesir"><option value="Bilecik"><option value="Bingöl"><option value="Bitlis"><option value="Bolu"><option value="Burdur"><option value="Bursa"><option value="Çanakkale"><option value="Çankırı"><option value="Çorum"><option value="Denizli"><option value="Diyarbakır"><option value="Edirne"><option value="Elazığ"><option value="Erzincan"><option value="Erzurum"><option value="Eskişehir"><option value="Gaziantep"><option value="Giresun"><option value="Gümüşhane"><option value="Hakkari"><option value="Hatay"><option value="Isparta"><option value="Mersin"><option value="İstanbul"><option value="İzmir"><option value="Kars"><option value="Kastamonu"><option value="Kayseri"><option value="Kırklareli"><option value="Kırşehir"><option value="Kocaeli"><option value="Konya"><option value="Kütahya"><option value="Malatya"><option value="Manisa"><option value="Kahramanmaraş"><option value="Mardin"><option value="Muğla"><option value="Muş"><option value="Nevşehir"><option value="Niğde"><option value="Ordu"><option value="Rize"><option value="Sakarya"><option value="Samsun"><option value="Siirt"><option value="Sinop"><option value="Sivas"><option value="Tekirdağ"><option value="Tokat"><option value="Trabzon"><option value="Tunceli"><option value="Şanlıurfa"><option value="Uşak"><option value="Van"><option value="Yozgat"><option value="Zonguldak"><option value="Aksaray"><option value="Bayburt"><option value="Karaman"><option value="Kırıkkale"><option value="Batman"><option value="Şırnak"><option value="Bartın"><option value="Ardahan"><option value="Iğdır"><option value="Yalova"><option value="Karabük"><option value="Kilis"><option value="Osmaniye"><option value="Düzce">
+                        </datalist>
+                    </div>
+                    <div class="input-group" style="flex:1; min-width: 200px;">
+                        <label>Çalışma Şekli</label>
+                        <select id="ilanCalisma" class="filter-select" required>
+                            <option value="Ofis">Ofis</option>
+                            <option value="Uzaktan">Uzaktan</option>
+                            <option value="Hibrit">Hibrit</option>
+                            <option value="Tam Zamanlı Staj">Tam Zamanlı Staj</option>
+                            <option value="Yarı Zamanlı Staj">Yarı Zamanlı Staj</option>
+                            <option value="Gönüllü Staj">Gönüllü Staj</option>
+                            <option value="Proje Bazlı">Proje Bazlı</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="flex:1; min-width: 200px;">
+                        <label>Kategori</label>
+                        <select id="ilanKategori" class="filter-select" required>
+                            <option value="Yazılım">Yazılım Geliştirme</option>
+                            <option value="Web">Web Tasarım/Geliştirme</option>
+                            <option value="Veri">Veri Bilimi / Veri Analitiği</option>
+                            <option value="Pazarlama">Pazarlama / SEO</option>
+                            <option value="Siber Güvenlik">Siber Güvenlik</option>
+                            <option value="Yapay Zeka">Yapay Zeka / Makine Öğrenmesi</option>
+                            <option value="Mobil">Mobil Geliştirme (iOS/Android)</option>
+                            <option value="DevOps">DevOps / Bulut Sistemler</option>
+                            <option value="IK">İnsan Kaynakları (İK)</option>
+                            <option value="Finans">Finans / Muhasebe</option>
+                            <option value="Tasarım">Tasarım (UI/UX - 3D - Grafik)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Detaylar / İş Tanımı</label>
+                    <textarea id="ilanDetay" rows="5" style="width: 100%; padding: 14px; border: none; border-radius: 8px; outline: none; background: #2b2d31; color: #fff; box-shadow: inset 4px 4px 8px #1d1e21, inset -4px -4px 8px #393c41; font-size: 1rem; resize: vertical;" required placeholder="Adaydan beklenen yetenekler ve iş tanımını detaylıca yazınız..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary">İlanı Veritabanına Ekle (Yayınla)</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await API.waitForInit();
+            const user = API.getCurrentUser();
+            if (!user || user.rol !== 'kurumsal') {
+                alert('Sadece kurumsal hesaplar ilan yayınlayabilir.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('ilanEkleForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    const poz = document.getElementById('ilanPozisyon').value;
+                    const lok = document.getElementById('ilanLokasyon').value;
+                    const cal = document.getElementById('ilanCalisma').value;
+                    const kat = document.getElementById('ilanKategori').value;
+                    const det = document.getElementById('ilanDetay').value;
+                    
+                    await API.ilanEkle(user.ad, poz, lok, cal, kat, det);
+                    alert('İlan başarıyla yayınlandı!');
+                    e.target.reset();
+                    window.location.href = 'index.html'; // Anasayfaya dön
+                } catch (err) {
+                    alert('Hata: ' + err.message);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

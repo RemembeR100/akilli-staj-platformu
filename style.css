@@ -1,0 +1,116 @@
+* {
+    margin: 0; padding: 0; box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+body {
+    background-color: #2b2d31; color: #d1d5db; line-height: 1.6;
+}
+
+/* Navigasyon Çubuğu */
+.navbar {
+    background: #2b2d31; padding: 15px 0;
+    box-shadow: 6px 6px 12px #1d1e21, -6px -6px 12px #393c41;
+}
+.nav-container {
+    max-width: 1000px; margin: 0 auto; display: flex;
+    justify-content: space-between; align-items: center; padding: 0 20px;
+}
+.logo { font-size: 1.5rem; font-weight: bold; color: #e2e8f0; text-decoration: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+.logo span { color: #3b82f6; }
+.nav-links { display: flex; list-style: none; gap: 20px; align-items: center; }
+.nav-links a { text-decoration: none; color: #9ca3af; font-weight: 500; transition: color 0.3s; }
+.nav-links a:hover { color: #fff; }
+.btn-nav {
+    background: #2b2d31; color: #3b82f6 !important; padding: 8px 18px; border-radius: 8px;
+    box-shadow: 4px 4px 8px #1d1e21, -4px -4px 8px #393c41; transition: all 0.2s ease;
+}
+.btn-nav:hover { box-shadow: inset 4px 4px 8px #1d1e21, inset -4px -4px 8px #393c41; }
+
+/* Auth Konteynır (Login & Register) */
+.auth-container { display: flex; justify-content: center; align-items: center; min-height: 90vh; padding: 20px; }
+.auth-box {
+    background: #2b2d31; padding: 40px 30px; border-radius: 16px; width: 100%; max-width: 450px;
+    box-shadow: 8px 8px 16px #1d1e21, -8px -8px 16px #393c41;
+}
+.auth-tabs { display: flex; gap: 15px; margin-bottom: 25px; }
+.tab {
+    flex: 1; padding: 12px; text-align: center; border-radius: 8px; cursor: pointer; color: #9ca3af; font-weight: 600;
+    box-shadow: 4px 4px 8px #1d1e21, -4px -4px 8px #393c41; transition: 0.3s;
+}
+.tab.active { box-shadow: inset 4px 4px 8px #1d1e21, inset -4px -4px 8px #393c41; color: #3b82f6; }
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #d1d5db; }
+.input-group input, .search-input, .filter-select {
+    width: 100%; padding: 14px; border: none; border-radius: 8px; outline: none; background: #2b2d31; color: #fff;
+    box-shadow: inset 4px 4px 8px #1d1e21, inset -4px -4px 8px #393c41; font-size: 1rem;
+}
+.btn-primary {
+    width: 100%; padding: 14px; background: #2b2d31; color: #3b82f6; font-size: 1.1rem;
+    border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px;
+    box-shadow: 6px 6px 12px #1d1e21, -6px -6px 12px #393c41; transition: all 0.2s ease;
+}
+.btn-primary:active { box-shadow: inset 6px 6px 12px #1d1e21, inset -6px -6px 12px #393c41; color: #2563eb; }
+.btn-primary:disabled { color: #6b7280; cursor: not-allowed; box-shadow: inset 6px 6px 12px #1d1e21, inset -6px -6px 12px #393c41; }
+
+/* İlan Listeleme */
+.container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+.page-title { color: #e2e8f0; margin-bottom: 25px; text-align: center; font-size: 1.8rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+.search-filter-section { display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
+.search-box {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+    background: #2b2d31;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 6px 6px 12px #1d1e21, -6px -6px 12px #393c41;
+}
+.filters {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.filters .filter-select { flex: 1; min-width: 180px; }
+.search-input { flex: 2; width: 100%; } .filter-select { flex: 1; cursor: pointer; }
+.job-card {
+    background: #2b2d31; padding: 25px; border-radius: 16px; margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 6px 6px 12px #1d1e21, -6px -6px 12px #393c41; transition: all 0.3s ease;
+}
+.job-card:hover { transform: translateY(-3px); box-shadow: 8px 8px 16px #1a1c1e, -8px -8px 16px #3d4046; }
+.job-info h3 { margin-bottom: 8px; color: #e2e8f0; font-size: 1.25rem; }
+.job-info p { color: #9ca3af; font-size: 0.95rem; }
+.job-date { color: #6b7280; font-size: 0.85rem; margin-top: 12px; display: block; }
+.btn-details {
+    padding: 10px 20px; border: none; color: #3b82f6; background: #2b2d31;
+    border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s;
+    box-shadow: 4px 4px 8px #1d1e21, -4px -4px 8px #393c41;
+}
+.btn-details:hover { color: #60a5fa; }
+.btn-details:active { box-shadow: inset 4px 4px 8px #1d1e21, inset -4px -4px 8px #393c41; }
+.loading { text-align: center; color: #9ca3af; font-size: 1.1rem; padding: 20px; }
+
+/* Modal Stilleri */
+.modal {
+    display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center; backdrop-filter: blur(4px);
+}
+.modal-content {
+    background: #2b2d31; padding: 35px; border-radius: 16px; max-width: 500px; width: 90%;
+    position: relative; box-shadow: 10px 10px 30px rgba(0,0,0,0.5), inset 1px 1px 2px rgba(255,255,255,0.1);
+}
+.close-btn {
+    position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; color: #6b7280; cursor: pointer; transition: 0.3s;
+}
+.close-btn:hover { color: #ef4444; }
+.modal-company { color: #9ca3af; font-weight: 500; margin-bottom: 15px; margin-top: 5px; }
+.modal-detail-text { color: #d1d5db; line-height: 1.6; margin-bottom: 25px; }
+
+/* Profil Sayfası Stilleri */
+.profile-card {
+    background: #2b2d31; padding: 35px; border-radius: 16px;
+    box-shadow: 8px 8px 16px #1d1e21, -8px -8px 16px #393c41;
+}
+.profile-info p { font-size: 1.1rem; color: #d1d5db; margin-bottom: 12px; }
+.profile-info strong { color: #e2e8f0; display: inline-block; width: 100px; }

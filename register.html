@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Staj Portal | Kayıt Ol</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">Akıllı Staj Programı </a>
+            <ul class="nav-links">
+                <!-- auth.js tarafından doldurulacak -->
+            </ul>
+        </div>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-tabs">
+                <div class="tab active" id="stajyer-tab" onclick="toggleForm('stajyer')">Stajyer</div>
+                <div class="tab" id="kurumsal-tab" onclick="toggleForm('kurumsal')">Kurumsal</div>
+            </div>
+            
+            <form id="auth-form">
+                <div id="dynamic-fields">
+                    <!-- Başlangıçta Stajyer Alanları (stj2.jpeg) -->
+                    <div class="input-group">
+                        <label>Ad Soyad</label>
+                        <input type="text" placeholder="Ahmet Yılmaz" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Okul Numarası</label>
+                        <input type="text" placeholder="202401010" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>E-posta</label>
+                    <input type="email" id="regEmail" placeholder="ornek@mail.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Şifre</label>
+                    <input type="password" id="regPassword" placeholder="********" required>
+                </div>
+                <button type="submit" class="btn-primary">Kayıt Ol</button>
+            </form>
+            <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                Zaten üye misin? <a href="login.html" style="color: #2563EB; text-decoration: none;">Giriş Yap</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function toggleForm(type) {
+            const fields = document.getElementById('dynamic-fields');
+            const stajyerTab = document.getElementById('stajyer-tab');
+            const kurumsalTab = document.getElementById('kurumsal-tab');
+
+            if (type === 'kurumsal') {
+                kurumsalTab.classList.add('active');
+                stajyerTab.classList.remove('active');
+                fields.innerHTML = `
+                    <div class="input-group">
+                        <label>Firma Adı</label>
+                        <input type="text" placeholder="Teknoloji A.Ş." required>
+                    </div>
+                    <div class="input-group">
+                        <label>Vergi Numarası</label>
+                        <input type="text" placeholder="1234567890" required>
+                    </div>
+                `;
+            } else {
+                stajyerTab.classList.add('active');
+                kurumsalTab.classList.remove('active');
+                fields.innerHTML = `
+                    <div class="input-group">
+                        <label>Ad Soyad</label>
+                        <input type="text" placeholder="Ahmet Yılmaz" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Okul Numarası</label>
+                        <input type="text" placeholder="202401010" required>
+                    </div>
+                `;
+            }
+        }
+
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // Stajyer veya Kurumsal tabına göre adı al
+            const isKurumsal = document.getElementById('kurumsal-tab').classList.contains('active');
+            let adSoyad = '';
+            
+            // İlk input genellikle ad/soyad veya firma adı oluyor
+            const firstInput = document.querySelector('#dynamic-fields input');
+            if (firstInput) {
+                adSoyad = firstInput.value;
+            }
+
+            const email = document.getElementById('regEmail').value;
+            const sifre = document.getElementById('regPassword').value;
+            const rol = isKurumsal ? 'kurumsal' : 'stajyer';
+
+            try {
+                // Kayıt ol
+                await API.register(adSoyad, email, sifre, rol);
+                window.location.href = 'index.html';
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="api.js"></script>
+    <script src="auth.js"></script>
+</body>
+</html>

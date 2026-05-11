@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Akıllı Staj Porgramı | İlanlar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">Akıllı Staj Programı </a>
+            <ul class="nav-links">
+                <li><a href="index.html">İlanlar</a></li>
+                <li><a href="login.html">Giriş Yap</a></li>
+                <li><a href="register.html" class="btn-nav">Kayıt Ol</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="page-title">Aktif Staj İlanları</h1>
+        <div class="search-section">
+            <h1 class="page-title">Sana En Uygun Stajı Bul</h1>
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="Pozisyon, şirket veya anahtar kelime ara...">
+                
+                <div class="filters">
+                    <select id="kategoriFilter" class="filter-select">
+                        <option value="Tümü">Kategori: Tümü</option>
+                        <option value="Yazılım">Yazılım Geliştirme</option>
+                        <option value="Web">Web Tasarım/Geliştirme</option>
+                        <option value="Veri">Veri Bilimi / Veri Analitiği</option>
+                        <option value="Pazarlama">Pazarlama / SEO</option>
+                        <option value="Siber Güvenlik">Siber Güvenlik</option>
+                        <option value="Yapay Zeka">Yapay Zeka / Makine Öğrenmesi</option>
+                        <option value="Mobil">Mobil Geliştirme (iOS/Android)</option>
+                        <option value="DevOps">DevOps / Bulut Sistemler</option>
+                        <option value="IK">İnsan Kaynakları (İK)</option>
+                        <option value="Finans">Finans / Muhasebe</option>
+                        <option value="Tasarım">Tasarım (UI/UX - 3D - Grafik)</option>
+                    </select>
+
+                    <select id="calismaFilter" class="filter-select">
+                        <option value="Tümü">Çalışma Şekli: Tümü</option>
+                        <option value="Ofis">Ofis</option>
+                        <option value="Uzaktan">Uzaktan</option>
+                        <option value="Hibrit">Hibrit</option>
+                        <option value="Tam Zamanlı Staj">Tam Zamanlı Staj</option>
+                        <option value="Yarı Zamanlı Staj">Yarı Zamanlı Staj</option>
+                        <option value="Gönüllü Staj">Gönüllü Staj</option>
+                        <option value="Proje Bazlı">Proje Bazlı</option>
+                    </select>
+
+                    <input type="text" id="lokasyonFilter" class="filter-select" list="illerArama" placeholder="Lokasyon: Tümü" autocomplete="off" style="width:100%; border:none; padding:12px; border-radius:8px; outline:none; background:#2b2d31; color:#fff; font-size:1rem; box-shadow:inset 4px 4px 8px #1d1e21, inset -4px -4px 8px #393c41;">
+                    <datalist id="illerArama">
+                        <option value="Adana"><option value="Adıyaman"><option value="Afyonkarahisar"><option value="Ağrı"><option value="Amasya"><option value="Ankara"><option value="Antalya"><option value="Artvin"><option value="Aydın"><option value="Balıkesir"><option value="Bilecik"><option value="Bingöl"><option value="Bitlis"><option value="Bolu"><option value="Burdur"><option value="Bursa"><option value="Çanakkale"><option value="Çankırı"><option value="Çorum"><option value="Denizli"><option value="Diyarbakır"><option value="Edirne"><option value="Elazığ"><option value="Erzincan"><option value="Erzurum"><option value="Eskişehir"><option value="Gaziantep"><option value="Giresun"><option value="Gümüşhane"><option value="Hakkari"><option value="Hatay"><option value="Isparta"><option value="Mersin"><option value="İstanbul"><option value="İzmir"><option value="Kars"><option value="Kastamonu"><option value="Kayseri"><option value="Kırklareli"><option value="Kırşehir"><option value="Kocaeli"><option value="Konya"><option value="Kütahya"><option value="Malatya"><option value="Manisa"><option value="Kahramanmaraş"><option value="Mardin"><option value="Muğla"><option value="Muş"><option value="Nevşehir"><option value="Niğde"><option value="Ordu"><option value="Rize"><option value="Sakarya"><option value="Samsun"><option value="Siirt"><option value="Sinop"><option value="Sivas"><option value="Tekirdağ"><option value="Tokat"><option value="Trabzon"><option value="Tunceli"><option value="Şanlıurfa"><option value="Uşak"><option value="Van"><option value="Yozgat"><option value="Zonguldak"><option value="Aksaray"><option value="Bayburt"><option value="Karaman"><option value="Kırıkkale"><option value="Batman"><option value="Şırnak"><option value="Bartın"><option value="Ardahan"><option value="Iğdır"><option value="Yalova"><option value="Karabük"><option value="Kilis"><option value="Osmaniye"><option value="Düzce">
+                    </datalist>
+                </div>
+            </div>
+        </div>
+        <!-- İlan Listesi (JavaScript ile doldurulacak) -->
+        <div id="ilan-listesi">
+            <div class="loading">İlanlar yükleniyor...</div>
+        </div>
+    </div>
+
+    <!-- Modal (İlan Detayı için) -->
+    <div id="ilanModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2 id="modalTitle">İlan Detayı</h2>
+            <p id="modalCompany" class="modal-company"></p>
+            <p id="modalDetail" class="modal-detail-text"></p>
+            <button id="btnApply" class="btn-primary" style="margin-top: 15px;">Bu İlana Başvur</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="api.js"></script>
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

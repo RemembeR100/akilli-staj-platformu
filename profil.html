@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Akıllı Staj Programı | Profilim</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">Akıllı Staj Programı </a>
+            <ul class="nav-links">
+                <!-- auth.js tarafından doldurulacak -->
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top: 50px;">
+        <div class="profile-card">
+            <h1 class="page-title" style="text-align: left; margin-bottom: 20px;">Profil Bilgilerim</h1>
+            <div class="profile-info">
+                <p><strong>Ad Soyad:</strong> <span id="profAd">Yükleniyor...</span></p>
+                <p><strong>E-posta:</strong> <span id="profEmail">Yükleniyor...</span></p>
+                <p><strong>Rol:</strong> <span id="profRol" style="text-transform: capitalize;">Yükleniyor...</span></p>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid #3e3e42; margin: 30px 0;">
+
+            <!-- STAJYER GÖRÜNÜMÜ -->
+            <div id="stajyerView" style="display: none;">
+                <h2 style="margin-bottom: 15px; color: #e2e8f0; font-size: 1.4rem;">Başvurulan İlanlar</h2>
+                <div class="applied-jobs" id="appliedJobsList">
+                    <p style="color: #9ca3af;">Başvurularınız yükleniyor...</p>
+                </div>
+            </div>
+
+            <!-- KURUMSAL GÖRÜNÜM -->
+            <div id="kurumsalView" style="display: none;">
+                <h2 style="margin-bottom: 15px; color: #e2e8f0; font-size: 1.4rem;">Açtığım İlanlar</h2>
+                <div class="applied-jobs" id="kurumsalIlanlarList">
+                    <p style="color: #9ca3af;">Yükleniyor...</p>
+                </div>
+            </div>
+            
+            <!-- ADMIN GÖRÜNÜMÜ -->
+            <div id="adminView" style="display: none;">
+                <p style="color: #10b981;">Admin kullanıcısı olarak <a href="admin.html" style="color: #3b82f6;">Admin Paneli</a>'ne gidebilirsiniz.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="api.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await API.waitForInit();
+            const user = API.getCurrentUser();
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Bilgileri Doldur
+            document.getElementById('profAd').textContent = user.ad || "Belirtilmemiş";
+            document.getElementById('profEmail').textContent = user.email || "Belirtilmemiş";
+            document.getElementById('profRol').textContent = user.rol || "Stajyer";
+
+            // Rol Görünümleri
+            if (user.rol === 'kurumsal') {
+                document.getElementById('kurumsalView').style.display = 'block';
+                loadKurumsalIlanlar(user.ad);
+            } else if (user.rol === 'admin') {
+                document.getElementById('adminView').style.display = 'block';
+            } else {
+                document.getElementById('stajyerView').style.display = 'block';
+                loadStajyerBasvurulari(user.id);
+            }
+        });
+
+        async function loadStajyerBasvurulari(userId) {
+            const list = document.getElementById('appliedJobsList');
+            try {
+                const basvurular = await API.getKullaniciBasvurulari(userId);
+                if (basvurular.length === 0) {
+                    list.innerHTML = '<p style="color: #9ca3af;">Henüz hiçbir ilana başvuru yapmadınız.</p>';
+                    return;
+                }
+                list.innerHTML = '';
+                basvurular.forEach(basvuru => {
+                    const card = document.createElement('div');
+                    card.className = 'job-card';
+                    card.style.boxShadow = 'none';
+                    card.style.border = '1px solid #3e3e42';
+                    card.innerHTML = `
+                        <div class="job-info" style="flex:1;">
+                            <h3>${basvuru.pozisyon}</h3>
+                            <p>${basvuru.sirket_adi} • ${basvuru.lokasyon} (${basvuru.calisma_sekli})</p>
+                            <span class="job-date" style="color: #3b82f6; font-weight: bold;">Durum: ${basvuru.durum} | Tarih: ${basvuru.tarih}</span>
+                        </div>
+                        <button class="btn-details" style="color: #ef4444; border: 1px solid #ef4444;" onclick="iptalEt(${basvuru.jobId})">İptal Et</button>
+                    `;
+                    list.appendChild(card);
+                });
+            } catch (error) {
+                list.innerHTML = '<p style="color: #ef4444;">Başvurular yüklenirken hata oluştu.</p>';
+            }
+        }
+
+        async function iptalEt(jobId) {
+            if (!confirm('Bu başvuruyu iptal etmek istediğinize emin misiniz?')) return;
+            try {
+                const user = API.getCurrentUser();
+                await API.basvuruIptal(user.id, jobId);
+                alert('Başvurunuz iptal edildi.');
+                loadStajyerBasvurulari(user.id);
+            } catch (err) {
+                alert('İptal işlemi başarısız: ' + err.message);
+            }
+        }
+
+        async function loadKurumsalIlanlar(sirketAdi) {
+            const list = document.getElementById('kurumsalIlanlarList');
+            try {
+                const ilanlar = await API.getKurumsalIlanlari(sirketAdi);
+                if (ilanlar.length === 0) {
+                    list.innerHTML = '<p style="color: #9ca3af;">Henüz bir ilan açmadınız. <br><br> <a href="ilan_ekle.html" class="btn-details" style="display:inline-block;">+ İlan Aç</a></p>';
+                    return;
+                }
+                list.innerHTML = '';
+                ilanlar.forEach(ilan => {
+                    const card = document.createElement('div');
+                    card.className = 'job-card';
+                    card.style.boxShadow = 'none';
+                    card.style.border = '1px solid #3e3e42';
+                    card.innerHTML = `
+                        <div class="job-info">
+                            <h3>${ilan.pozisyon}</h3>
+                            <p>${ilan.lokasyon} (${ilan.calisma_sekli})</p>
+                            <span class="job-date" style="color: #10b981; font-weight: bold;">Yayınlanma: ${ilan.tarih}</span>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            } catch (error) {
+                list.innerHTML = '<p style="color: #ef4444;">İlanlar yüklenirken hata oluştu.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
