@@ -8,7 +8,7 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="logo">Akıllı Staj Programı </a>
+            <a href="index.html" class="logo"><img src="logo.png" alt="Logo" class="logo-img">Akıllı Staj Programı </a>
             <ul class="nav-links">
                 <!-- auth.js tarafından doldurulacak -->
             </ul>
@@ -28,28 +28,23 @@
 
             <!-- STAJYER GÖRÜNÜMÜ -->
             <div id="stajyerView" style="display: none;">
-                
-                <!-- Profil Düzenleme Formu -->
-                <div class="profile-edit-section" style="margin-bottom: 30px; background: #222428; padding: 20px; border-radius: 12px; border: 1px solid #3e3e42;">
-                    <h2 style="margin-bottom: 15px; color: #e2e8f0; font-size: 1.2rem;">Yetenek & Profil Bilgileri (Eşleşme İçin)</h2>
-                    <form id="profilGuncelleForm">
-                        <div class="input-group">
-                            <label for="profYetenekler">Yetenekleriniz (Virgülle ayırın, örn: HTML, CSS, React, Python)</label>
-                            <input type="text" id="profYetenekler" placeholder="Örn: JavaScript, Figma, Veri Analizi">
-                        </div>
-                        <div class="input-group">
-                            <label for="profBio">Kısa Biyografi / Hakkımda</label>
-                            <input type="text" id="profBio" placeholder="Kendinizden kısaca bahsedin...">
-                        </div>
-                        <div class="input-group">
-                            <label for="profLink">Portfolyo / LinkedIn Linki</label>
-                            <input type="url" id="profLink" placeholder="https://linkedin.com/in/...">
-                        </div>
-                        <button type="submit" class="btn-primary" id="btnProfilKaydet" style="width: auto; padding: 10px 20px; margin-top: 5px;">Bilgileri Kaydet</button>
-                    </form>
+                <!-- Önerilen Stajlar Paneli -->
+                <div class="recommendations-panel" style="margin-bottom: 40px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <h2 style="color: var(--text-primary); font-size: 1.5rem; display: flex; align-items: center; gap: 10px; margin: 0;">
+                            <span style="font-size: 1.8rem;">✨</span> Sana Uygun Staj Önerileri
+                        </h2>
+                        <span style="background: rgba(99, 102, 241, 0.15); color: var(--accent-color); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(99, 102, 241, 0.3);">Yapay Zeka Destekli Eşleşme</span>
+                    </div>
+                    
+                    <div class="recommendations-grid" id="recommendationsList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                        <p style="color: var(--text-secondary);">Öneriler yükleniyor...</p>
+                    </div>
                 </div>
 
-                <h2 style="margin-bottom: 15px; color: #e2e8f0; font-size: 1.4rem;">Başvurulan İlanlar</h2>
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 30px 0;">
+
+                <h2 style="margin-bottom: 15px; color: var(--text-primary); font-size: 1.4rem;">Başvurulan İlanlar</h2>
                 <div class="applied-jobs" id="appliedJobsList">
                     <p style="color: #9ca3af;">Başvurularınız yükleniyor...</p>
                 </div>
@@ -96,14 +91,7 @@
                 document.getElementById('adminView').style.display = 'block';
             } else {
                 document.getElementById('stajyerView').style.display = 'block';
-                
-                // Form alanlarını doldur
-                if (document.getElementById('profYetenekler')) {
-                    document.getElementById('profYetenekler').value = user.yetenekler || '';
-                    document.getElementById('profBio').value = user.bio || '';
-                    document.getElementById('profLink').value = user.link || '';
-                }
-
+                loadOnerilenStajlar();
                 loadStajyerBasvurulari(user.id);
             }
             
@@ -132,6 +120,46 @@
                 });
             }
         });
+
+        async function loadOnerilenStajlar() {
+            const list = document.getElementById('recommendationsList');
+            // Yapay zeka simülasyon verileri
+            const oneriler = [
+                { pozisyon: "Frontend Developer Stajyeri", sirket: "TechNova", lokasyon: "Uzaktan", eslesme: "%98", etiket: "En İyi Eşleşme" },
+                { pozisyon: "UI/UX Tasarım Stajyeri", sirket: "DesignStudio", lokasyon: "İstanbul (Hibrit)", eslesme: "%92", etiket: "Yeteneklerinle Uyumlu" },
+                { pozisyon: "React Geliştirici", sirket: "WebSoft", lokasyon: "İzmir (Ofis)", eslesme: "%85", etiket: "Popüler" }
+            ];
+
+            list.innerHTML = '';
+            oneriler.forEach(oneri => {
+                const card = document.createElement('div');
+                card.style.background = 'linear-gradient(145deg, var(--surface-color), rgba(99, 102, 241, 0.05))';
+                card.style.border = '1px solid var(--border-color)';
+                card.style.borderRadius = '16px';
+                card.style.padding = '20px';
+                card.style.transition = 'all 0.3s ease';
+                card.style.position = 'relative';
+                card.style.overflow = 'hidden';
+                card.style.cursor = 'pointer';
+                
+                card.onmouseover = () => { card.style.transform = 'translateY(-5px)'; card.style.borderColor = 'var(--accent-color)'; card.style.boxShadow = 'var(--shadow-lg)'; };
+                card.onmouseout = () => { card.style.transform = 'translateY(0)'; card.style.borderColor = 'var(--border-color)'; card.style.boxShadow = 'none'; };
+
+                card.innerHTML = `
+                    <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-color);"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <span style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700;">${oneri.eslesme} Eşleşme</span>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary); background: var(--bg-color); padding: 4px 10px; border-radius: 8px;">${oneri.etiket}</span>
+                    </div>
+                    <h3 style="color: var(--text-primary); font-size: 1.2rem; margin-bottom: 5px;">${oneri.pozisyon}</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">${oneri.sirket} • ${oneri.lokasyon}</p>
+                    <a href="index.html" style="display:block; text-decoration:none;">
+                        <button class="btn-details" style="width: 100%; text-align: center; padding: 10px;">İlanı İncele</button>
+                    </a>
+                `;
+                list.appendChild(card);
+            });
+        }
 
         async function loadStajyerBasvurulari(userId) {
             const list = document.getElementById('appliedJobsList');
