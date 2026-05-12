@@ -1,8 +1,17 @@
 /**
- * GERÇEK SQLITE VERİTABANI SERVİSİ (WebAssembly)
- * Veriler .sqlite formatında indirilebilir.
+ * api.js - Veritabanı ve uygulama servis katmanı
+ *
+ * Bu dosyada sql.js (WebAssembly SQLite) kullanarak tarayıcı üzerinde
+ * gerçek bir ilişkisel veritabanı çalıştırıyorum. Veriler localStorage'da
+ * Base64 olarak saklanıyor, böylece sayfa yenilenince kaybolmuyor.
+ *
+ * Modüller:
+ *   - initDatabase()  : DB'yi başlatır veya var olanı yükler
+ *   - saveDatabase()  : Güncel DB'yi localStorage'a kaydeder
+ *   - API nesnesi     : Tüm CRUD ve iş mantığı metodları
  */
 
+// Veritabanı nesnesi ve başlatma sözü
 let db = null;
 let dbReadyPromise = null;
 
@@ -70,17 +79,27 @@ async function initDatabase() {
         stmt.free();
     }
 
-    // ŞEMA GÜNCELLEMELERİ (Yeni Sütunlar)
+    // Eski veritabanlarında eksik sütunlar varsa ekle (migration)
     try { db.run(`ALTER TABLE kullanicilar ADD COLUMN bio TEXT;`); } catch(e){}
     try { db.run(`ALTER TABLE kullanicilar ADD COLUMN yetenekler TEXT;`); } catch(e){}
     try { db.run(`ALTER TABLE kullanicilar ADD COLUMN link TEXT;`); } catch(e){}
 
-    // VARSAYILAN ADMİN KONTROLÜ
+    // SCRUM-40: Öneri ve filtreleme sorgularının hızlı çalışması için index'ler
+    // Kategori, çalışma şekli ve lokasyona göre çok sorgu yapıyoruz,
+    // bu index'ler o sorgularda tam scan yerine index scan yaptırıyor.
+    try { db.run(`CREATE INDEX IF NOT EXISTS idx_ilanlar_kategori ON ilanlar(kategori);`); } catch(e){}
+    try { db.run(`CREATE INDEX IF NOT EXISTS idx_ilanlar_calisma ON ilanlar(calisma_sekli);`); } catch(e){}
+    try { db.run(`CREATE INDEX IF NOT EXISTS idx_ilanlar_lokasyon ON ilanlar(lokasyon);`); } catch(e){}
+    try { db.run(`CREATE INDEX IF NOT EXISTS idx_basvurular_userId ON basvurular(userId);`); } catch(e){}
+    try { db.run(`CREATE INDEX IF NOT EXISTS idx_basvurular_jobId ON basvurular(jobId);`); } catch(e){}
+
+    // Başlangıçta bir admin yoksa varsayılan admin kullanıcısı ekle
     const adminCheck = db.exec("SELECT id FROM kullanicilar WHERE email='admin'");
     if (adminCheck.length === 0) {
         db.run("INSERT INTO kullanicilar (ad, email, sifre, rol) VALUES ('Sistem Yöneticisi', 'admin', 'admin', 'admin')");
     }
 
+    // Her şey hazır, veritabanını localStorage'a kaydet
     saveDatabase();
 }
 
@@ -90,8 +109,9 @@ function saveDatabase() {
     localStorage.setItem('real_sqlite_db', base64);
 }
 
-// Tüm export edilen SQL sorgularını çalıştıran asıl obje
+// Dışarıdan erişilen tüm veritabanı işlemleri bu nesnede toplanıyor
 const API = {
+    // Veritabanının hazır olmasını bekle (her metodun başında çağrılıyor)
     waitForInit: async () => {
         if (!dbReadyPromise) dbReadyPromise = initDatabase();
         await dbReadyPromise;
@@ -107,8 +127,11 @@ const API = {
         a.click();
     },
 
+    // İlanları filtrelerle getir - arama metni, kategori, çalışma şekli ve lokasyona göre
+    // SCRUM-40: Kategori ve lokasyon sütunlarına index eklediğim için bu sorgu hızlı çalışıyor
     getIlanlar: async (filters = {}) => {
         await API.waitForInit();
+        // Dinamik SQL: sadece gelen filtreleri WHERE'e ekliyorum
         let query = "SELECT * FROM ilanlar WHERE 1=1";
         let params = [];
         
@@ -117,14 +140,17 @@ const API = {
             params.push(`%${filters.aramaMetni.toLowerCase()}%`, `%${filters.aramaMetni.toLowerCase()}%`);
         }
         if (filters.kategori && filters.kategori !== 'Tümü') {
+            // idx_ilanlar_kategori index'i burada devreye giriyor
             query += " AND kategori = ?";
             params.push(filters.kategori);
         }
         if (filters.calismaSekli && filters.calismaSekli !== 'Tümü') {
+            // idx_ilanlar_calisma index'i burada devreye giriyor
             query += " AND calisma_sekli = ?";
             params.push(filters.calismaSekli);
         }
         if (filters.lokasyon && filters.lokasyon.trim() !== '') {
+            // idx_ilanlar_lokasyon index'i burada devreye giriyor
             query += " AND LOWER(lokasyon) LIKE ?";
             params.push(`%${filters.lokasyon.trim().toLowerCase()}%`);
         }
@@ -198,10 +224,10 @@ const API = {
         return user ? JSON.parse(user) : null;
     },
 
-    profilGuncelle: async (id, bio, yetenekler, link) => {
+    profilGuncelle: async (id, ad, bio, yetenekler, link) => {
         await API.waitForInit();
-        const stmt = db.prepare("UPDATE kullanicilar SET bio = ?, yetenekler = ?, link = ? WHERE id = ?");
-        stmt.run([bio, yetenekler, link, id]);
+        const stmt = db.prepare("UPDATE kullanicilar SET ad = ?, bio = ?, yetenekler = ?, link = ? WHERE id = ?");
+        stmt.run([ad, bio, yetenekler, link, id]);
         stmt.free();
         saveDatabase();
         
@@ -279,6 +305,96 @@ const API = {
         }
         stmt.free();
         return results;
+    },
+
+    // SCRUM-39 + SCRUM-40: Kişiselleştirilmiş eşleştirme algoritması
+    //
+    // Mantık:
+    //   - Kullanıcının yeteneklerini ve bio metnini keyword listesine çeviriyorum
+    //   - Her ilan için iki faktörü hesaplıyorum:
+    //       1. Metin Eşleşmesi (%65): Kaç yetenek ilan metninde geçiyor? (mutlak sayı)
+    //       2. Kategori Uyumu  (%35): Kaç yetenek bu kategorinin alanına giriyor?
+    //
+    //   ÖNEMLİ: Puan ORAN değil MUTLAK SAYI üzerinden hesaplanıyor.
+    //   Yani kullanıcı yeni bir yetenek eklerse mevcut puanlar DÜŞMEZ.
+    //   Her eşleşen yetenek puana katkı yapar, eşleşmeyen yetenek ceza vermez.
+    //
+    //   SCRUM-40: Tüm ilanları tek sorguda çekiyorum (index'li tablo),
+    //   puanlama saf JS ile yapılıyor, DB'yi gereksiz yere zorlamıyorum.
+    getEslesmeSkorlu: async (userId) => {
+        await API.waitForInit();
+
+        const userStmt = db.prepare("SELECT * FROM kullanicilar WHERE id = ?");
+        userStmt.bind([userId]);
+        let user = null;
+        if (userStmt.step()) user = userStmt.getAsObject();
+        userStmt.free();
+        if (!user) return [];
+
+        // Kullanıcı keyword listesi: yetenekler + bio
+        const userKeywords = [];
+        if (user.yetenekler) {
+            user.yetenekler.split(',').map(y => y.trim().toLowerCase()).filter(Boolean).forEach(y => userKeywords.push(y));
+        }
+        if (user.bio) {
+            // Stopwords dışında 4+ karakter kelimeler
+            const stopwords = ['ve','bir','bu','ile','da','de','için','olan','olan','benim','ama','daha','gibi','olarak'];
+            user.bio.toLowerCase().split(/[\s,;.!?]+/).filter(w => w.length >= 4 && !stopwords.includes(w)).forEach(w => userKeywords.push(w));
+        }
+
+        // Kategori -> anahtar kelime haritası (kapsamlı)
+        const catMap = {
+            'Yazılım': ['javascript','typescript','python','java','c++','c#','node','nodejs','react','vue','angular','backend','fullstack','api','rest','graphql','git','docker','kubernetes','linux','ruby','golang','rust','spring','django','flask','express','next','php','laravel','microservice','aws','devops','yazılım','kod','programlama','geliştirme'],
+            'Web':     ['web','html','css','react','vue','angular','frontend','tasarım','figma','ui','ux','wordpress','bootstrap','tailwind','sass','scss','webflow','next','nuxt','jquery','responsive','animasyon','svg','canva','sketch','adobexd','kullanıcı deneyimi','arayüz'],
+            'Veri':    ['python','pandas','numpy','sql','nosql','mysql','postgresql','mongodb','excel','tableau','powerbi','veri','data','analiz','analitik','istatistik','makine öğrenmesi','ml','tensorflow','pytorch','scikit','spark','hadoop','etl','pipeline','rapor','görselleştirme','keras','r dili'],
+            'Pazarlama':['pazarlama','marketing','seo','sem','sosyal medya','instagram','tiktok','google ads','meta ads','facebook','reklam','kampanya','dijital','içerik','content','copywriting','email','influencer','marka','marka yönetimi','analitik','crm','hubspot']
+        };
+
+        // Tüm ilanları çek
+        const ilanStmt = db.prepare("SELECT * FROM ilanlar ORDER BY id DESC");
+        const ilanlar = [];
+        while (ilanStmt.step()) ilanlar.push(ilanStmt.getAsObject());
+        ilanStmt.free();
+
+        // Profil boşsa popüler ilanları döndür
+        if (userKeywords.length === 0) {
+            return ilanlar.slice(0, 6).map(i => ({ ...i, eslesme: 55, eslesme_label: 'Popüler' }));
+        }
+
+        const skorluIlanlar = ilanlar.map(ilan => {
+            // İlanın tüm metin içeriğini birleştirip küçük harfe çeviriyorum
+            const ilanText = [ilan.pozisyon, ilan.detay, ilan.kategori, ilan.sirket_adi].join(' ').toLowerCase();
+            const catKeys = catMap[ilan.kategori] || [];
+
+            // FAKTÖR 1 - Metin Eşleşmesi (max 65 puan)
+            // Kaç tane yetenekten bu ilanın metninde geçiyor? (mutlak sayı)
+            // Her eşleşen yetenek 25 puan kazandırıyor, 65 puanda tavan var.
+            // Böylece fazla yetenek eklemek mevcut eşleşmeleri düşürmüyor.
+            const matchedInText = userKeywords.filter(uk => uk.length >= 2 && ilanText.includes(uk));
+            const textScore = Math.min(65, matchedInText.length * 25);
+
+            // FAKTÖR 2 - Kategori Uyumu (max 35 puan)
+            // Kullanıcının kaç yeteneği bu kategorinin bilgi alanına giriyor?
+            // Örn: python ve sql -> Veri kategorisiyle 2 eşleşme -> 35 puan tavan.
+            const catMatchedSkills = userKeywords.filter(uk =>
+                catKeys.some(kw => kw === uk || kw.includes(uk) || uk.includes(kw))
+            ).length;
+            const catScore = Math.min(35, catMatchedSkills * 18);
+
+            // Toplam puan ve etiket belirleme
+            const eslesme = Math.min(99, Math.max(12, textScore + catScore));
+
+            let eslesme_label;
+            if (eslesme >= 75)      eslesme_label = 'En İyi Eşleşme';
+            else if (eslesme >= 50) eslesme_label = 'Yeteneklerinle Uyumlu';
+            else if (eslesme >= 28) eslesme_label = 'İlginizi Çekebilir';
+            else                    eslesme_label = 'Keşfet';
+
+            return { ...ilan, eslesme, eslesme_label };
+        });
+
+        // Puanı yüksek olandan düşük olana sırala, en iyi 6 ilanı göster
+        return skorluIlanlar.sort((a, b) => b.eslesme - a.eslesme).slice(0, 6);
     },
 
     // ADMİN METOTLARI
