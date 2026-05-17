@@ -390,7 +390,12 @@
                         <p>${b.sirket_adi} • ${b.lokasyon} (${b.calisma_sekli})</p>
                         <span class="job-date" style="color:#3b82f6;">Durum: ${b.durum} | Tarih: ${b.tarih}</span>
                     </div>
-                    <button class="btn-details" style="color:#ef4444;border-color:#ef4444;" onclick="iptalEt(${b.jobId})">İptal Et</button>`;
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <a href="index.html?ilan_id=${b.jobId}" style="text-decoration:none;">
+                            <button class="btn-details" style="background:rgba(99,102,241,0.1); border-color:var(--accent-color); color:var(--accent-color);">İlanı Gör</button>
+                        </a>
+                        <button class="btn-details" style="color:#ef4444;border-color:#ef4444;" onclick="iptalEt(${b.jobId})">İptal Et</button>
+                    </div>`;
                 list.appendChild(card);
             });
         }
