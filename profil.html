@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +8,8 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .profile-hero {
-            background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.07) 100%);
-            border: 1px solid rgba(99,102,241,0.25);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.07) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.25);
             border-radius: 24px;
             padding: 36px 40px;
             display: flex;
@@ -19,124 +20,321 @@
             position: relative;
             overflow: hidden;
         }
+
         .profile-hero::after {
-            content:'';
-            position:absolute;
-            top:-60px; right:-60px;
-            width:220px; height:220px;
-            background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%);
-            border-radius:50%;
-            pointer-events:none;
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
         }
+
         .avatar-circle {
-            width:86px; height:86px; border-radius:50%;
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            display:flex; align-items:center; justify-content:center;
-            font-size:2rem; font-weight:700; color:#fff; flex-shrink:0;
-            box-shadow: 0 0 28px rgba(99,102,241,0.45);
-            border: 3px solid rgba(255,255,255,0.12);
-            position:relative; z-index:1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 0 28px rgba(99, 102, 241, 0.45);
+            border: 3px solid rgba(255, 255, 255, 0.12);
+            position: relative;
+            z-index: 1;
         }
-        .hero-info { flex:1; position:relative; z-index:1; }
-        .hero-info h1 { font-size:1.75rem; font-weight:700; color:var(--text-primary); margin-bottom:4px; }
-        .hero-info .email { color:var(--text-secondary); font-size:0.97rem; margin-bottom:10px; }
+
+        .hero-info {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-info h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .hero-info .email {
+            color: var(--text-secondary);
+            font-size: 0.97rem;
+            margin-bottom: 10px;
+        }
+
         .role-badge {
-            display:inline-block;
-            background:rgba(99,102,241,0.14); color:var(--accent-color);
-            border:1px solid rgba(99,102,241,0.3);
-            padding:3px 14px; border-radius:20px;
-            font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.14);
+            color: var(--accent-color);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .bio-display { margin-top:10px; color:var(--text-secondary); font-size:0.92rem; line-height:1.5; }
-        .skills-display { margin-top:10px; display:flex; flex-wrap:wrap; gap:7px; }
+
+        .bio-display {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        .skills-display {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
         .skill-chip {
-            background:rgba(99,102,241,0.13); color:var(--accent-color);
-            border:1px solid rgba(99,102,241,0.28);
-            padding:3px 12px; border-radius:20px; font-size:0.8rem; font-weight:600;
+            background: rgba(99, 102, 241, 0.13);
+            color: var(--accent-color);
+            border: 1px solid rgba(99, 102, 241, 0.28);
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
+
         .btn-edit {
-            padding:10px 22px;
-            background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.3);
-            color:var(--accent-color); border-radius:10px;
-            cursor:pointer; font-weight:600; transition:all 0.2s; font-size:0.95rem;
-            position:relative; z-index:1;
+            padding: 10px 22px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--accent-color);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
         }
-        .btn-edit:hover { background:rgba(99,102,241,0.22); transform:translateY(-2px); }
+
+        .btn-edit:hover {
+            background: rgba(99, 102, 241, 0.22);
+            transform: translateY(-2px);
+        }
 
         /* Edit Panel */
         .edit-panel {
-            background:var(--surface-color); border:1px solid var(--border-color);
-            border-radius:20px; padding:32px; margin-bottom:28px;
-            display:none; animation:slideDown 0.3s ease;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 28px;
+            display: none;
+            animation: slideDown 0.3s ease;
         }
+
         @keyframes slideDown {
-            from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)}
+            from {
+                opacity: 0;
+                transform: translateY(-12px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
         }
-        .edit-panel h2 { font-size:1.2rem; color:var(--text-primary); margin-bottom:22px; }
-        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-        .form-grid .full { grid-column:1/-1; }
+
+        .edit-panel h2 {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin-bottom: 22px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .form-grid .full {
+            grid-column: 1/-1;
+        }
+
         .skill-tags-box {
-            display:flex; flex-wrap:wrap; gap:7px; padding:10px;
-            background:var(--bg-color); border:1px solid var(--border-color);
-            border-radius:8px; min-height:48px; cursor:text;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            padding: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 48px;
+            cursor: text;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
+
         .skill-tags-box:focus-within {
-            border-color:var(--accent-color);
-            box-shadow:0 0 0 3px var(--accent-glow);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px var(--accent-glow);
         }
+
         .stag {
-            display:flex; align-items:center; gap:5px;
-            background:rgba(99,102,241,0.15); color:var(--accent-color);
-            border:1px solid rgba(99,102,241,0.3);
-            padding:3px 11px; border-radius:20px; font-size:0.82rem; font-weight:600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent-color);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 3px 11px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
         }
-        .stag .x { cursor:pointer; color:var(--text-secondary); transition:color 0.2s; }
-        .stag .x:hover { color:#ef4444; }
+
+        .stag .x {
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .stag .x:hover {
+            color: #ef4444;
+        }
+
         .stag-input {
-            border:none!important; background:transparent!important;
-            color:var(--text-primary)!important; outline:none!important;
-            padding:3px!important; min-width:110px; flex:1;
-            box-shadow:none!important;
+            border: none !important;
+            background: transparent !important;
+            color: var(--text-primary) !important;
+            outline: none !important;
+            padding: 3px !important;
+            min-width: 110px;
+            flex: 1;
+            box-shadow: none !important;
         }
-        .form-actions { display:flex; gap:12px; margin-top:14px; flex-wrap:wrap; }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
 
         /* Section */
         .section-card {
-            background:var(--surface-color); border:1px solid var(--border-color);
-            border-radius:20px; padding:32px; margin-bottom:24px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
         }
+
         .sec-header {
-            display:flex; justify-content:space-between; align-items:center;
-            margin-bottom:22px; flex-wrap:wrap; gap:10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        .sec-header h2 { font-size:1.3rem; color:var(--text-primary); display:flex; align-items:center; gap:10px; }
+
+        .sec-header h2 {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .ai-badge {
-            background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.15));
-            color:var(--accent-color); border:1px solid rgba(99,102,241,0.3);
-            padding:5px 14px; border-radius:20px; font-size:0.78rem; font-weight:700;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+            color: var(--accent-color);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
         }
-        .recs-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:16px; }
+
+        .recs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 16px;
+        }
+
         .match-card {
-            background:linear-gradient(145deg,var(--surface-color),rgba(99,102,241,0.04));
-            border:1px solid var(--border-color); border-radius:16px;
-            padding:20px; position:relative; overflow:hidden;
-            cursor:pointer; transition:all 0.3s ease;
+            background: linear-gradient(145deg, var(--surface-color), rgba(99, 102, 241, 0.04));
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .match-card:hover { transform:translateY(-5px); border-color:var(--accent-color); box-shadow:0 16px 32px rgba(0,0,0,0.4),0 0 20px rgba(99,102,241,0.12); }
-        .match-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:linear-gradient(to bottom,#6366f1,#8b5cf6); }
-        .match-pct { display:inline-block; background:rgba(16,185,129,0.12); color:#10b981; border:1px solid rgba(16,185,129,0.22); padding:3px 10px; border-radius:8px; font-size:0.75rem; font-weight:700; }
-        .match-lbl { font-size:0.75rem; color:var(--text-secondary); background:var(--bg-color); padding:3px 10px; border-radius:8px; }
+
+        .match-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.12);
+        }
+
+        .match-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #6366f1, #8b5cf6);
+        }
+
+        .match-pct {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.12);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.22);
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .match-lbl {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: var(--bg-color);
+            padding: 3px 10px;
+            border-radius: 8px;
+        }
+
         .no-skills-tip {
-            background:rgba(99,102,241,0.07); border:1px dashed rgba(99,102,241,0.3);
-            border-radius:12px; padding:18px; text-align:center; color:var(--text-secondary); margin-bottom:16px;
+            background: rgba(99, 102, 241, 0.07);
+            border: 1px dashed rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
         }
-        @media(max-width:600px){
-            .form-grid{grid-template-columns:1fr;}
-            .profile-hero{flex-direction:column;text-align:center;}
+
+        @media(max-width:600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-hero {
+                flex-direction: column;
+                text-align: center;
+            }
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar">
         <div class="nav-container">
@@ -157,7 +355,8 @@
                 <p class="bio-display" id="profBioDisplay" style="display:none;"></p>
                 <div class="skills-display" id="profSkillsDisplay"></div>
                 <div id="profLinkDisplay" style="margin-top:10px;display:none;">
-                    <a id="profLinkAnchor" href="#" target="_blank" style="color:var(--accent-color);font-size:0.9rem;">🔗 <span id="profLinkText"></span></a>
+                    <a id="profLinkAnchor" href="#" target="_blank"
+                        style="color:var(--accent-color);font-size:0.9rem;">🔗 <span id="profLinkText"></span></a>
                 </div>
             </div>
             <button class="btn-edit" onclick="toggleEdit()">✏️ Profili Düzenle</button>
@@ -178,18 +377,22 @@
                     </div>
                     <div class="input-group full">
                         <label for="editBio">Hakkımda</label>
-                        <textarea id="editBio" rows="3" placeholder="Kendinizi kısaca tanıtın, ilgi alanlarınızı yazın..."></textarea>
+                        <textarea id="editBio" rows="3"
+                            placeholder="Kendinizi kısaca tanıtın, ilgi alanlarınızı yazın..."></textarea>
                     </div>
                     <div class="input-group full">
-                        <label>Yetenekler <span style="color:var(--text-secondary);font-size:0.83rem;">(Virgül veya Enter ile ekleyin)</span></label>
-                        <div class="skill-tags-box" id="skillTagsBox" onclick="document.getElementById('skillInput').focus()">
+                        <label>Yetenekler <span style="color:var(--text-secondary);font-size:0.83rem;">(Virgül veya
+                                Enter ile ekleyin)</span></label>
+                        <div class="skill-tags-box" id="skillTagsBox"
+                            onclick="document.getElementById('skillInput').focus()">
                             <input type="text" id="skillInput" class="stag-input" placeholder="Python, React, SQL...">
                         </div>
                         <input type="hidden" id="editYetenekler">
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary" id="btnKaydet" style="width:auto;padding:12px 30px;margin-top:0;">💾 Kaydet</button>
+                    <button type="submit" class="btn-primary" id="btnKaydet"
+                        style="width:auto;padding:12px 30px;margin-top:0;">💾 Kaydet</button>
                     <button type="button" class="btn-details" onclick="toggleEdit()">İptal</button>
                 </div>
             </form>
@@ -204,7 +407,8 @@
                     <span class="ai-badge">🤖 AI Eşleştirme</span>
                 </div>
                 <div id="noSkillsTip" class="no-skills-tip" style="display:none;">
-                    Profilini doldurursan daha iyi eşleşmeler görebilirsin! &nbsp;<button class="btn-details" style="padding:5px 14px;font-size:0.85rem;" onclick="toggleEdit()">Profili Güncelle</button>
+                    Profilini doldurursan daha iyi eşleşmeler görebilirsin! &nbsp;<button class="btn-details"
+                        style="padding:5px 14px;font-size:0.85rem;" onclick="toggleEdit()">Profili Güncelle</button>
                 </div>
                 <div class="recs-grid" id="recommendationsList"></div>
             </div>
@@ -212,7 +416,9 @@
             <!-- Başvurular -->
             <div class="section-card">
                 <h2 style="font-size:1.3rem;color:var(--text-primary);margin-bottom:20px;">📋 Başvurulan İlanlar</h2>
-                <div id="appliedJobsList"><p style="color:#9ca3af;">Yükleniyor...</p></div>
+                <div id="appliedJobsList">
+                    <p style="color:#9ca3af;">Yükleniyor...</p>
+                </div>
             </div>
         </div>
 
@@ -220,14 +426,17 @@
         <div id="kurumsalView" style="display:none;">
             <div class="section-card">
                 <h2 style="font-size:1.3rem;color:var(--text-primary);margin-bottom:20px;">📌 Açtığım İlanlar</h2>
-                <div id="kurumsalIlanlarList"><p style="color:#9ca3af;">Yükleniyor...</p></div>
+                <div id="kurumsalIlanlarList">
+                    <p style="color:#9ca3af;">Yükleniyor...</p>
+                </div>
             </div>
         </div>
 
         <!-- ADMİN -->
         <div id="adminView" style="display:none;">
             <div class="section-card">
-                <p style="color:#10b981;">Admin kullanıcısı olarak <a href="admin.html" style="color:#6366f1;">Admin Paneli</a>'ne gidebilirsiniz.</p>
+                <p style="color:#10b981;">Admin kullanıcısı olarak <a href="admin.html" style="color:#6366f1;">Admin
+                        Paneli</a>'ne gidebilirsiniz.</p>
             </div>
         </div>
     </div>
@@ -251,7 +460,7 @@
             document.getElementById('profAd').textContent = user.ad || 'İsimsiz';
             document.getElementById('profEmail').textContent = user.email || '';
             document.getElementById('profRol').textContent =
-                ({stajyer:'Stajyer', kurumsal:'Kurumsal', admin:'Admin'}[user.rol] || user.rol);
+                ({ stajyer: 'Stajyer', kurumsal: 'Kurumsal', admin: 'Admin' }[user.rol] || user.rol);
 
             const bioEl = document.getElementById('profBioDisplay');
             if (user.bio) { bioEl.textContent = user.bio; bioEl.style.display = 'block'; }
@@ -316,29 +525,62 @@
                 document.getElementById('editAd').value = currentUser.ad || '';
                 document.getElementById('editBio').value = currentUser.bio || '';
                 document.getElementById('editLink').value = currentUser.link || '';
-                currentSkills = currentUser.yetenekler ? currentUser.yetenekler.split(',').map(s=>s.trim()).filter(Boolean) : [];
+                currentSkills = currentUser.yetenekler ? currentUser.yetenekler.split(',').map(s => s.trim()).filter(Boolean) : [];
                 renderTags();
             }
         }
 
         /* ---- Profil Kaydet ---- */
-        document.getElementById('profilGuncelleForm').addEventListener('submit', async e => {
+        const profileForm = document.getElementById('profilGuncelleForm');
+        const editAdInput = document.getElementById('editAd');
+        const editLinkInput = document.getElementById('editLink');
+        const editBioInput = document.getElementById('editBio');
+
+        // Yazıldıkça hataları temizle
+        editAdInput.addEventListener('input', () => FormValidation.clearError(editAdInput));
+        editLinkInput.addEventListener('input', () => FormValidation.clearError(editLinkInput));
+
+        profileForm.addEventListener('submit', async e => {
             e.preventDefault();
+            FormValidation.clearFormErrors(profileForm);
+
+            const ad = editAdInput.value.trim();
+            const bio = editBioInput.value.trim();
+            const link = editLinkInput.value.trim();
+            const yetenekler = currentSkills.join(', ');
+
+            let hasError = false;
+
+            if (!ad) {
+                FormValidation.showError(editAdInput, "Ad Soyad alanı boş bırakılamaz.");
+                hasError = true;
+            } else if (ad.split(' ').filter(Boolean).length < 2) {
+                FormValidation.showError(editAdInput, "Lütfen adınızı ve soyadınızı tam giriniz.");
+                hasError = true;
+            }
+
+            if (link) {
+                const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+                if (!urlRegex.test(link)) {
+                    FormValidation.showError(editLinkInput, "Geçersiz web adresi. Örn: https://linkedin.com/in/kullanici");
+                    hasError = true;
+                }
+            }
+
+            if (hasError) return;
+
             const btn = document.getElementById('btnKaydet');
             btn.textContent = 'Kaydediliyor...'; btn.disabled = true;
             try {
-                const ad = document.getElementById('editAd').value.trim();
-                const bio = document.getElementById('editBio').value.trim();
-                const link = document.getElementById('editLink').value.trim();
-                const yetenekler = currentSkills.join(', ');
                 await API.profilGuncelle(currentUser.id, ad, bio, yetenekler, link);
                 currentUser = API.getCurrentUser();
                 updateHero(currentUser);
                 document.getElementById('editPanel').style.display = 'none';
+                showToast('Profiliniz başarıyla güncellendi!', 'success');
                 // Eşleşmeleri yenile
                 if (currentUser.rol === 'stajyer' || !currentUser.rol) loadOnerilenStajlar();
             } catch (err) {
-                alert('Hata: ' + err.message);
+                showToast('Profil güncellenirken bir hata oluştu: ' + err.message, 'error');
             } finally {
                 btn.textContent = '💾 Kaydet'; btn.disabled = false;
             }
@@ -359,7 +601,7 @@
 
                 // Eşleşme yüzdesine göre renk tonu
                 const pctColor = o.eslesme >= 75 ? '#10b981' : o.eslesme >= 50 ? '#6366f1' : '#9ca3af';
-                const pctBg   = o.eslesme >= 75 ? 'rgba(16,185,129,0.12)' : o.eslesme >= 50 ? 'rgba(99,102,241,0.12)' : 'rgba(156,163,175,0.1)';
+                const pctBg = o.eslesme >= 75 ? 'rgba(16,185,129,0.12)' : o.eslesme >= 50 ? 'rgba(99,102,241,0.12)' : 'rgba(156,163,175,0.1)';
 
                 card.innerHTML = `
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
@@ -390,15 +632,27 @@
                         <p>${b.sirket_adi} • ${b.lokasyon} (${b.calisma_sekli})</p>
                         <span class="job-date" style="color:#3b82f6;">Durum: ${b.durum} | Tarih: ${b.tarih}</span>
                     </div>
-                    <button class="btn-details" style="color:#ef4444;border-color:#ef4444;" onclick="iptalEt(${b.jobId})">İptal Et</button>`;
+                    <button class="btn-details" style="color:#ef4444;border-color:#ef4444;" onclick="iptalEt(${b.id})">İptal Et</button>`;
                 list.appendChild(card);
             });
         }
 
         async function iptalEt(jobId) {
-            if (!confirm('Bu başvuruyu iptal etmek istiyor musunuz?')) return;
-            await API.basvuruIptal(currentUser.id, jobId);
-            loadBasvurular(currentUser.id);
+            const confirmed = await showConfirm(
+                'Başvuruyu İptal Et',
+                'Bu staj ilanına yapmış olduğunuz başvuruyu iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.',
+                true
+            );
+            if (!confirmed) return;
+
+            try {
+                await API.basvuruIptal(currentUser.id, jobId);
+                showToast('Başvurunuz başarıyla iptal edildi.', 'success');
+                loadBasvurular(currentUser.id);
+                if (currentUser.rol === 'stajyer' || !currentUser.rol) loadOnerilenStajlar();
+            } catch (err) {
+                showToast('Hata: ' + err.message, 'error');
+            }
         }
 
         /* ---- Kurumsal İlanlar ---- */
@@ -444,4 +698,5 @@
         });
     </script>
 </body>
+
 </html>
