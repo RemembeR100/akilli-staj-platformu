@@ -209,3 +209,250 @@ button[style*="color: #ef4444"]:hover, a.btn-details[style*="color: #ef4444"]:ho
 a[style*="color: #2563EB"] {
     color: var(--accent-color) !important;
 }
+
+/* ==========================================================================
+   CUSTOM UX STYLES: TOASTS, DIALOGS, AND INPUT VALIDATIONS (SCRUM-62)
+   ========================================================================== */
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+.toast {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 16px 20px;
+    min-width: 320px;
+    max-width: 450px;
+    color: var(--text-primary);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    pointer-events: auto;
+    overflow: hidden;
+    position: relative;
+    transform: translateX(130%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+.toast-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.toast-content {
+    flex-grow: 1;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.4;
+}
+.toast-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0 4px;
+    transition: color 0.2s, transform 0.2s;
+    line-height: 1;
+}
+.toast-close:hover {
+    color: var(--text-primary);
+    transform: scale(1.15);
+}
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    transform-origin: left;
+    animation: toastProgressLinear linear forwards;
+}
+@keyframes toastProgressLinear {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+/* Toast Types */
+.toast-success {
+    border-left: 4px solid #10b981;
+}
+.toast-success .toast-icon {
+    color: #10b981;
+}
+.toast-success .toast-progress {
+    background: #10b981;
+}
+
+.toast-error {
+    border-left: 4px solid #ef4444;
+}
+.toast-error .toast-icon {
+    color: #ef4444;
+}
+.toast-error .toast-progress {
+    background: #ef4444;
+}
+
+.toast-info {
+    border-left: 4px solid #3b82f6;
+}
+.toast-info .toast-icon {
+    color: #3b82f6;
+}
+.toast-info .toast-progress {
+    background: #3b82f6;
+}
+
+.toast-warning {
+    border-left: 4px solid #f59e0b;
+}
+.toast-warning .toast-icon {
+    color: #f59e0b;
+}
+.toast-warning .toast-progress {
+    background: #f59e0b;
+}
+
+/* Custom Modal Dialog Overlay */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(8, 12, 24, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 99990;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.custom-modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.custom-modal-box {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 32px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    transform: scale(0.92) translateY(15px);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.custom-modal-overlay.show .custom-modal-box {
+    transform: scale(1) translateY(0);
+}
+.custom-modal-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.custom-modal-body {
+    font-size: 0.98rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 26px;
+}
+.custom-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+.custom-modal-btn {
+    padding: 11px 22px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+.custom-modal-btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+.custom-modal-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+.custom-modal-btn-confirm {
+    background: var(--accent-color);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 12px var(--accent-glow);
+}
+.custom-modal-btn-confirm:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px var(--accent-glow);
+}
+.custom-modal-btn-confirm:active {
+    transform: translateY(0);
+}
+.custom-modal-btn-danger {
+    background: #ef4444;
+    border: none;
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+.custom-modal-btn-danger:hover {
+    background: #f87171;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+.custom-modal-btn-danger:active {
+    transform: translateY(0);
+}
+
+/* Field Level Input Validation Errors */
+.input-error-msg {
+    color: #ef4444;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: fadeInError 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes fadeInError {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+input.input-invalid, textarea.input-invalid, select.input-invalid {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18) !important;
+}
+input.input-invalid:focus, textarea.input-invalid:focus, select.input-invalid:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.22) !important;
+}

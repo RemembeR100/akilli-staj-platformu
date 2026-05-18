@@ -80,26 +80,76 @@
             await API.waitForInit();
             const user = API.getCurrentUser();
             if (!user || user.rol !== 'kurumsal') {
-                alert('Sadece kurumsal hesaplar ilan yayınlayabilir.');
-                window.location.href = 'index.html';
+                showToast('Bu sayfayı görüntülemek için kurumsal üye girişi yapmalısınız!', 'warning', 3000);
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
                 return;
             }
 
-            document.getElementById('ilanEkleForm').addEventListener('submit', async (e) => {
+            const form = document.getElementById('ilanEkleForm');
+            const pozInput = document.getElementById('ilanPozisyon');
+            const lokInput = document.getElementById('ilanLokasyon');
+            const calInput = document.getElementById('ilanCalisma');
+            const katInput = document.getElementById('ilanKategori');
+            const detInput = document.getElementById('ilanDetay');
+
+            // Yazıldıkça hataları temizle
+            pozInput.addEventListener('input', () => FormValidation.clearError(pozInput));
+            lokInput.addEventListener('input', () => FormValidation.clearError(lokInput));
+            detInput.addEventListener('input', () => FormValidation.clearError(detInput));
+
+            form.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                FormValidation.clearFormErrors(form);
+
+                const poz = pozInput.value.trim();
+                const lok = lokInput.value.trim();
+                const cal = calInput.value;
+                const kat = katInput.value;
+                const det = detInput.value.trim();
+
+                let hasError = false;
+
+                if (!poz) {
+                    FormValidation.showError(pozInput, "Pozisyon adı alanı boş bırakılamaz.");
+                    hasError = true;
+                } else if (poz.length < 5) {
+                    FormValidation.showError(pozInput, "Pozisyon adı en az 5 karakter olmalıdır.");
+                    hasError = true;
+                }
+
+                if (!lok) {
+                    FormValidation.showError(lokInput, "Lütfen bir lokasyon/il seçiniz.");
+                    hasError = true;
+                }
+
+                if (!det) {
+                    FormValidation.showError(detInput, "İş tanımı alanı boş bırakılamaz.");
+                    hasError = true;
+                } else if (det.length < 20) {
+                    FormValidation.showError(detInput, "Lütfen en az 20 karakterlik açıklayıcı bir iş tanımı yazınız.");
+                    hasError = true;
+                }
+
+                if (hasError) return;
+
                 try {
-                    const poz = document.getElementById('ilanPozisyon').value;
-                    const lok = document.getElementById('ilanLokasyon').value;
-                    const cal = document.getElementById('ilanCalisma').value;
-                    const kat = document.getElementById('ilanKategori').value;
-                    const det = document.getElementById('ilanDetay').value;
+                    const btn = form.querySelector('.btn-primary');
+                    btn.textContent = 'Yayınlanıyor...';
+                    btn.disabled = true;
                     
                     await API.ilanEkle(user.ad, poz, lok, cal, kat, det);
-                    alert('İlan başarıyla yayınlandı!');
-                    e.target.reset();
-                    window.location.href = 'index.html'; // Anasayfaya dön
+                    showToast('İlanınız başarıyla yayınlandı!', 'success', 2000);
+                    form.reset();
+                    setTimeout(() => {
+                        window.location.href = 'index.html'; // Anasayfaya dön
+                    }, 1200);
                 } catch (err) {
-                    alert('Hata: ' + err.message);
+                    showToast('Hata: ' + err.message, 'error');
+                    const btn = form.querySelector('.btn-primary');
+                    btn.textContent = 'İlanı Veritabanına Ekle (Yayınla)';
+                    btn.disabled = false;
                 }
             });
         });
