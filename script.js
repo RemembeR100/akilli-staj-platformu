@@ -11,12 +11,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let currentJobId = null;
 
-    // İlanları Yükle ve Ekrana Bas (SCRUM-19, SCRUM-21)
+    // İlanları Yükle ve Ekrana Bas (Burada filtreleme falan da var)
     async function loadIlanlar(filters = {}) {
-        if (!listesiContainer) return; // Eğer giriş sayfasındaysa çalışmasın
+        // Eğer div yoksa (mesela profil sayfasındaysak) boşuna çalıştırmayalım hata vermesin
+        if (!listesiContainer) return; 
 
+        // Yükleniyor yazısı, hoca "veri geç gelirse ne oluyor" derse burayı gösterirsin
         listesiContainer.innerHTML = '<div class="loading">İlanlar aranıyor...</div>';
 
+        // Filtreleri toparlıyoruz. Eğer boş gelirse varsayılan olarak 'Tümü' alıyor
         const finalFilters = {
             aramaMetni: filters.aramaMetni || '',
             kategori: filters.kategori || 'Tümü',
@@ -25,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
+            // api.js'teki getIlanlar fonksiyonunu çağırıp veritabanından ilanları çekiyoruz
             const ilanlar = await API.getIlanlar(finalFilters);
             renderIlanlar(ilanlar);
         } catch (error) {
@@ -93,33 +97,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // İlan Detayını Aç (SCRUM-21)
+    // İlan Detayını Aç (Modalı gösteren kısım)
     window.openDetay = async function(id) {
-        // AUTH KONTROLÜ
+        // Hoca sorarsa: Sadece giriş yapanlar ilan detayını görebilsin diye burada auth kontrolü yapıyorum
         const user = API.getCurrentUser();
         if (!user) {
-            alert('İlan detaylarını görmek için kayıt olmanız veya giriş yapmanız gerekmektedir.');
-            window.location.href = 'register.html';
+            showToast('İlan detaylarını görebilmek için önce giriş yapmanız veya kayıt olmanız gerekmektedir.', 'warning', 3000);
+            // Giriş yapılmadığı için kayıt sayfasına yönlendiriyorum
+            setTimeout(() => {
+                window.location.href = 'register.html';
+            }, 1500);
             return;
         }
 
         try {
+            // İlanın detay bilgilerini DB'den çekiyoruz
             const ilan = await API.getIlanDetay(id);
             modalTitle.textContent = ilan.pozisyon;
             modalCompany.textContent = `${ilan.sirket_adi} • ${ilan.lokasyon} (${ilan.calisma_sekli})`;
             modalDetail.textContent = ilan.detay;
-            currentJobId = id;
+            currentJobId = id; // Hangi ilana başvuru yapılacağını bilmek için id'yi global değişkende tutuyorum
             
-            // Kullanıcı bu ilana daha önce başvurdu mu kontrol et
+            // Kullanıcı bu ilana daha önce başvurmuş mu? Onu kontrol ediyorum
             const basvurular = await API.getKullaniciBasvurulari(user.id);
-            const alreadyApplied = basvurular.some(b => b.jobId === id);
+            const alreadyApplied = basvurular.some(b => b.id === id);
             
             if (btnApply) {
+                // Kurumsal hesaplar başvuru yapamasın diye butonu gizliyorum
                 if (user.rol === 'kurumsal') {
-                    btnApply.style.display = 'none'; // Kurumsal başvuru yapamaz
+                    btnApply.style.display = 'none'; 
                 } else {
-                    btnApply.style.display = 'flex';
-                    btnApply.className = 'btn-primary'; // Sınıfları sıfırla
+                    btnApply.style.display = 'block';
+                    // Önceden başvurduysa butonu pasifleştiriyorum
                     if (alreadyApplied) {
                         btnApply.textContent = "Başvuru Yapıldı";
                         btnApply.classList.add('success');
@@ -131,9 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
+            // Son olarak modalı görünür yapıyorum (display: flex css'te ortalamak için)
             modal.style.display = 'flex';
         } catch (error) {
-            alert('İlan detayı yüklenemedi: ' + error.message);
+            showToast('İlan detayı yüklenemedi: ' + error.message, 'error');
         }
     };
 
@@ -152,20 +162,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 await API.basvuruYap(user.id, currentJobId);
                 
-                // Başarı animasyonunu göster (kısa bir bekleme ile)
-                setTimeout(() => {
-                    btnApply.classList.remove('loading');
-                    btnApply.classList.add('success');
-                    btnApply.textContent = "Başvuru Başarılı";
-                    
-                    const modalContent = document.querySelector('.modal-content');
-                    modalContent.classList.add('success-glow');
-                    setTimeout(() => modalContent.classList.remove('success-glow'), 1000);
-                }, 800);
+                showToast('Başvurunuz başarıyla alındı! Profilinizdeki Başvurular kısmından takip edebilirsiniz.', 'success', 4000);
+                btnApply.textContent = "Başvuru Yapıldı";
                 
             } catch (error) {
-                alert(error.message);
-                btnApply.className = 'btn-primary';
+                showToast(error.message, 'error');
                 btnApply.textContent = "Bu İlana Başvur";
                 btnApply.disabled = false;
             }
@@ -185,7 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Arama ve Filtreleme İşlemleri (Debounce ile)
+    // Arama ve Filtreleme İşlemleri 
+    // Hoca "Debounce nedir?" derse: Kullanıcı her harf yazdığında sürekli veritabanına sorgu atmasın diye, 
+    // yazmayı bitirdikten 300 milisaniye sonra sorgu atmasını sağlayan performans optimizasyonu.
     let searchTimeout;
     const searchInput = document.getElementById('searchInput');
     const kategoriFilter = document.getElementById('kategoriFilter');
@@ -195,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function debouncedSearch() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
+            // Filtreleri toplayıp loadIlanlar fonksiyonuna gönderiyorum
             const filters = {
                 aramaMetni: searchInput ? searchInput.value : '',
                 kategori: kategoriFilter ? kategoriFilter.value : 'Tümü',
@@ -202,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lokasyon: lokasyonFilter ? lokasyonFilter.value : ''
             };
             loadIlanlar(filters);
-        }, 300);
+        }, 300); // 300ms bekleme süresi
     }
 
     if (searchInput) searchInput.addEventListener('input', debouncedSearch);
@@ -210,11 +214,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (calismaFilter) calismaFilter.addEventListener('change', debouncedSearch);
     if (lokasyonFilter) lokasyonFilter.addEventListener('input', debouncedSearch);
 
-    // Sayfa Yüklendiğinde İlanları Çek
+    // Sayfa Yüklendiğinde İlanları Çek + URL'de ilan_id varsa o ilanı aç
     if (typeof API !== 'undefined' && API.waitForInit) {
-        API.waitForInit().then(() => {
+        API.waitForInit().then(async () => {
             if (document.getElementById('ilan-listesi')) {
-                loadIlanlar({});
+                await loadIlanlar({});
+
+                // Profil sayfasından gelen ilan yönlendirmesi
+                const urlParams = new URLSearchParams(window.location.search);
+                const ilanId = urlParams.get('ilan_id');
+                if (ilanId) {
+                    // URL'yi temizle (geri tuşu sorun çıkarmasın)
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    // Kısa gecikmeyle modalı aç (DOM hazır olsun)
+                    setTimeout(() => openDetay(parseInt(ilanId)), 300);
+                }
             }
         });
     }

@@ -39,8 +39,10 @@
             const user = API.getCurrentUser();
             
             if (!user || user.rol !== 'admin') {
-                alert('Bu sayfayı görüntüleme yetkiniz yok!');
-                window.location.href = 'index.html';
+                showToast('Bu sayfayı görüntülemek için yetkiniz bulunmamaktadır!', 'error', 3000);
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
                 return;
             }
 
@@ -80,13 +82,19 @@
         }
 
         async function ilanSil(id) {
-            if(!confirm('Bu ilanı kalıcı olarak silmek istediğinize emin misiniz? (Bağlı başvurular da silinir)')) return;
+            const confirmed = await showConfirm(
+                'İlanı Kaldır',
+                'Bu staj ilanını kalıcı olarak silmek istediğinize emin misiniz? Bu ilana yapılmış olan tüm başvurular da silinecektir.',
+                true
+            );
+            if(!confirmed) return;
+            
             try {
                 await API.ilanSil(id);
-                alert('İlan silindi.');
+                showToast('İlan başarıyla veritabanından silindi.', 'success');
                 loadAllJobs();
             } catch (err) {
-                alert('Silme işlemi başarısız: ' + err.message);
+                showToast('Silme işlemi başarısız: ' + err.message, 'error');
             }
         }
     </script>
