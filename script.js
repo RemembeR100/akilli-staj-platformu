@@ -131,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Önceden başvurduysa butonu pasifleştiriyorum
                     if (alreadyApplied) {
                         btnApply.textContent = "Başvuru Yapıldı";
+                        btnApply.classList.add('success');
                         btnApply.disabled = true;
                     } else {
                         btnApply.textContent = "Bu İlana Başvur";
@@ -154,7 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!user) return;
             
             try {
-                btnApply.textContent = "Başvuruluyor...";
+                // Yükleniyor animasyonunu başlat
+                btnApply.textContent = "";
+                btnApply.classList.add('loading');
                 btnApply.disabled = true;
                 
                 await API.basvuruYap(user.id, currentJobId);
