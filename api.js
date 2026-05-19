@@ -11,6 +11,14 @@
  *   - API nesnesi     : Tüm CRUD ve iş mantığı metodları
  */
 
+// Güvenlik: Şifreleri SHA-256 ile hashlemek için yardımcı fonksiyon
+async function hashPassword(sifre) {
+    const msgBuffer = new TextEncoder().encode(sifre);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Veritabanı nesnesi ve başlatma sözü
 let db = null;
 let dbReadyPromise = null;
@@ -19,10 +27,10 @@ async function initDatabase() {
     const config = {
         locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${filename}`
     };
-    
+
     const SQL = await initSqlJs(config);
     const savedDb = localStorage.getItem('real_sqlite_db');
-    
+
     if (savedDb) {
         // Load existing
         const binaryString = atob(savedDb);
@@ -34,11 +42,11 @@ async function initDatabase() {
     } else {
         // Create new
         db = new SQL.Database();
-        
+
         db.run(`CREATE TABLE kullanicilar (id INTEGER PRIMARY KEY AUTOINCREMENT, ad TEXT, email TEXT UNIQUE, sifre TEXT, rol TEXT);`);
         db.run(`CREATE TABLE ilanlar (id INTEGER PRIMARY KEY AUTOINCREMENT, sirket_adi TEXT, pozisyon TEXT, lokasyon TEXT, calisma_sekli TEXT, kategori TEXT, tarih TEXT, detay TEXT);`);
         db.run(`CREATE TABLE basvurular (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER, jobId INTEGER, tarih TEXT, durum TEXT);`);
-        
+
         const initialJobs = [
             { sirket_adi: 'Teknoloji A.Ş.', pozisyon: 'Yazılım Geliştirme Stajyeri', lokasyon: 'İstanbul', calisma_sekli: 'Hibrit', kategori: 'Yazılım', tarih: '10 Mayıs 2026', detay: 'Modern web teknolojileri ile projeler geliştirecek stajyer arıyoruz.' },
             { sirket_adi: 'Okyanus Kolejleri', pozisyon: 'Web Geliştirme Stajyeri', lokasyon: 'İzmir', calisma_sekli: 'Uzaktan', kategori: 'Web', tarih: '08 Mayıs 2026', detay: 'Okulumuzun web altyapısına destek olacak, öğrenmeye hevesli stajyerler.' },
@@ -71,7 +79,7 @@ async function initDatabase() {
             { sirket_adi: 'Siber Kalkan', pozisyon: 'Sızma Testi Stajyeri', lokasyon: 'Uzaktan', calisma_sekli: 'Uzaktan', kategori: 'Yazılım', tarih: '31 Mayıs 2026', detay: 'Web uygulamalarında zafiyet tespiti yapacak yetenekler.' },
             { sirket_adi: 'Turizm Acentesi', pozisyon: 'Web Master Stajyeri', lokasyon: 'Muğla', calisma_sekli: 'Ofis', kategori: 'Web', tarih: '31 Mayıs 2026', detay: 'WordPress tabanlı sitelerimizi güncelleyecek ve performansını artıracak.' }
         ];
-        
+
         const stmt = db.prepare(`INSERT INTO ilanlar (sirket_adi, pozisyon, lokasyon, calisma_sekli, kategori, tarih, detay) VALUES (?, ?, ?, ?, ?, ?, ?)`);
         for (let job of initialJobs) {
             stmt.run([job.sirket_adi, job.pozisyon, job.lokasyon, job.calisma_sekli, job.kategori, job.tarih, job.detay]);
@@ -80,23 +88,45 @@ async function initDatabase() {
     }
 
     // Eski veritabanlarında eksik sütunlar varsa ekle (migration)
-    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN bio TEXT;`); } catch(e){}
-    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN yetenekler TEXT;`); } catch(e){}
-    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN link TEXT;`); } catch(e){}
+    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN bio TEXT;`); } catch (e) { }
+    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN yetenekler TEXT;`); } catch (e) { }
+    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN link TEXT;`); } catch (e) { }
+
+    // Tüm eski şifresiz hesapları bularak şifrelerini hashlenmiş formata çevir
+    try {
+        const usersStmt = db.prepare("SELECT id, sifre FROM kullanicilar");
+        const updates = [];
+        while (usersStmt.step()) {
+            const u = usersStmt.getAsObject();
+            // SHA-256 hash'leri 64 karakter uzunluğundadır, 64'ten farklıysa eski düz metin şifredir
+            if (u.sifre && u.sifre.length !== 64) {
+                updates.push(u);
+            }
+        }
+        usersStmt.free();
+
+        for (let u of updates) {
+            const hashed = await hashPassword(u.sifre);
+            db.run("UPDATE kullanicilar SET sifre = ? WHERE id = ?", [hashed, u.id]);
+        }
+    } catch (e) {
+        console.error("Şifre güncelleme hatası:", e);
+    }
 
     // SCRUM-40: Öneri ve filtreleme sorgularının hızlı çalışması için index'ler
     // Kategori, çalışma şekli ve lokasyona göre çok sorgu yapıyoruz,
     // bu index'ler o sorgularda tam scan yerine index scan yaptırıyor.
-    try { db.run(`CREATE INDEX IF NOT EXISTS idx_ilanlar_kategori ON ilanlar(kategori);`); } catch(e){}
-    try { db.run(`CREATE INDEX IF NOT EXISTS idx_ilanlar_calisma ON ilanlar(calisma_sekli);`); } catch(e){}
-    try { db.run(`CREATE INDEX IF NOT EXISTS idx_ilanlar_lokasyon ON ilanlar(lokasyon);`); } catch(e){}
-    try { db.run(`CREATE INDEX IF NOT EXISTS idx_basvurular_userId ON basvurular(userId);`); } catch(e){}
-    try { db.run(`CREATE INDEX IF NOT EXISTS idx_basvurular_jobId ON basvurular(jobId);`); } catch(e){}
+    try { db.run(`CREATE INDEX IF NOT EXISTS idx_ilanlar_kategori ON ilanlar(kategori);`); } catch (e) { }
+    try { db.run(`CREATE INDEX IF NOT EXISTS idx_ilanlar_calisma ON ilanlar(calisma_sekli);`); } catch (e) { }
+    try { db.run(`CREATE INDEX IF NOT EXISTS idx_ilanlar_lokasyon ON ilanlar(lokasyon);`); } catch (e) { }
+    try { db.run(`CREATE INDEX IF NOT EXISTS idx_basvurular_userId ON basvurular(userId);`); } catch (e) { }
+    try { db.run(`CREATE INDEX IF NOT EXISTS idx_basvurular_jobId ON basvurular(jobId);`); } catch (e) { }
 
     // Başlangıçta bir admin yoksa varsayılan admin kullanıcısı ekle
     const adminCheck = db.exec("SELECT id FROM kullanicilar WHERE email='admin'");
     if (adminCheck.length === 0) {
-        db.run("INSERT INTO kullanicilar (ad, email, sifre, rol) VALUES ('Sistem Yöneticisi', 'admin', 'admin', 'admin')");
+        // 'admin' şifresi SHA-256 ile hashlenmiş hali
+        db.run("INSERT INTO kullanicilar (ad, email, sifre, rol) VALUES ('Sistem Yöneticisi', 'admin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'admin')");
     }
 
     // Her şey hazır, veritabanını localStorage'a kaydet
@@ -129,12 +159,13 @@ const API = {
 
     // İlanları filtrelerle getir - arama metni, kategori, çalışma şekli ve lokasyona göre
     // SCRUM-40: Kategori ve lokasyon sütunlarına index eklediğim için bu sorgu hızlı çalışıyor
+    // Optimizasyon: LIMIT ile sonuç sayısı sınırlandırılarak gereksiz veri transferi önleniyor
     getIlanlar: async (filters = {}) => {
         await API.waitForInit();
         // Dinamik SQL: sadece gelen filtreleri WHERE'e ekliyorum
         let query = "SELECT * FROM ilanlar WHERE 1=1";
         let params = [];
-        
+
         if (filters.aramaMetni) {
             query += " AND (LOWER(pozisyon) LIKE ? OR LOWER(sirket_adi) LIKE ?)";
             params.push(`%${filters.aramaMetni.toLowerCase()}%`, `%${filters.aramaMetni.toLowerCase()}%`);
@@ -155,6 +186,15 @@ const API = {
             params.push(`%${filters.lokasyon.trim().toLowerCase()}%`);
         }
         query += " ORDER BY id DESC";
+
+        // LIMIT: Varsayılan 50, istenirse filters.limit ile değiştirilebilir
+        const limit = filters.limit || 50;
+        query += ` LIMIT ${limit}`;
+
+        // OFFSET: Sayfalama desteği (opsiyonel)
+        if (filters.offset) {
+            query += ` OFFSET ${filters.offset}`;
+        }
 
         const stmt = db.prepare(query);
         stmt.bind(params);
@@ -181,6 +221,13 @@ const API = {
 
     register: async (ad, email, sifre, rol) => {
         await API.waitForInit();
+
+        // Basit XSS Koruması: Ad alanındaki tehlikeli karakterleri temizle
+        const guvenliAd = ad.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        // Güvenlik: Şifreyi hashle
+        const hashedSifre = await hashPassword(sifre);
+
         // Check exists
         let stmt = db.prepare("SELECT id FROM kullanicilar WHERE email = ?");
         stmt.bind([email]);
@@ -191,20 +238,24 @@ const API = {
         stmt.free();
 
         stmt = db.prepare("INSERT INTO kullanicilar (ad, email, sifre, rol) VALUES (?, ?, ?, ?)");
-        stmt.run([ad, email, sifre, rol]);
+        stmt.run([guvenliAd, email, hashedSifre, rol]);
         stmt.free();
-        
+
         saveDatabase();
-        
-        const user = { id: db.exec("SELECT last_insert_rowid()")[0].values[0][0], ad, email, sifre, rol };
+
+        const user = { id: db.exec("SELECT last_insert_rowid()")[0].values[0][0], ad: guvenliAd, email, sifre: hashedSifre, rol };
         localStorage.setItem('aktif_kullanici', JSON.stringify(user));
         return user;
     },
 
     login: async (email, sifre) => {
         await API.waitForInit();
+
+        // Güvenlik: Girilen şifreyi hashleyerek veritabanındaki ile karşılaştır
+        const hashedSifre = await hashPassword(sifre);
+
         const stmt = db.prepare("SELECT * FROM kullanicilar WHERE email = ? AND sifre = ?");
-        stmt.bind([email, sifre]);
+        stmt.bind([email, hashedSifre]);
         if (stmt.step()) {
             const user = stmt.getAsObject();
             stmt.free();
@@ -230,7 +281,7 @@ const API = {
         stmt.run([ad, bio, yetenekler, link, id]);
         stmt.free();
         saveDatabase();
-        
+
         // Güncel kullanıcıyı tekrar çekip session'ı güncelle
         const getStmt = db.prepare("SELECT * FROM kullanicilar WHERE id = ?");
         getStmt.bind([id]);
@@ -254,7 +305,7 @@ const API = {
         stmt = db.prepare("INSERT INTO basvurular (userId, jobId, tarih, durum) VALUES (?, ?, ?, ?)");
         stmt.run([userId, jobId, tarih, 'Başvuru Alındı']);
         stmt.free();
-        
+
         saveDatabase();
     },
 
@@ -263,10 +314,16 @@ const API = {
         const stmt = db.prepare("DELETE FROM basvurular WHERE userId = ? AND jobId = ?");
         stmt.run([userId, jobId]);
         stmt.free();
+
+        // VACUUM: Silinen verilerin bıraktığı boşlukları temizle,
+        // veritabanı dosya boyutunu küçült ve sorgu performansını artır
+        db.run("VACUUM");
+
         saveDatabase();
     },
 
-    getKullaniciBasvurulari: async (userId) => {
+    // Optimizasyon: LIMIT ile kullanıcı başvuruları sınırlandırılıyor
+    getKullaniciBasvurulari: async (userId, limit = 50) => {
         await API.waitForInit();
         const stmt = db.prepare(`
             SELECT b.durum, b.tarih, i.* 
@@ -274,8 +331,9 @@ const API = {
             JOIN ilanlar i ON b.jobId = i.id 
             WHERE b.userId = ?
             ORDER BY b.id DESC
+            LIMIT ?
         `);
-        stmt.bind([userId]);
+        stmt.bind([userId, limit]);
         const results = [];
         while (stmt.step()) {
             results.push(stmt.getAsObject());
@@ -293,12 +351,13 @@ const API = {
         stmt.free();
         saveDatabase();
     },
-    
+
     // Kurumsal hesabın kendi açtığı ilanları getir
-    getKurumsalIlanlari: async (sirket_adi) => {
+    // Optimizasyon: LIMIT ile sonuç sayısı sınırlandırılıyor
+    getKurumsalIlanlari: async (sirket_adi, limit = 50) => {
         await API.waitForInit();
-        const stmt = db.prepare("SELECT * FROM ilanlar WHERE sirket_adi = ? ORDER BY id DESC");
-        stmt.bind([sirket_adi]);
+        const stmt = db.prepare("SELECT * FROM ilanlar WHERE sirket_adi = ? ORDER BY id DESC LIMIT ?");
+        stmt.bind([sirket_adi, limit]);
         const results = [];
         while (stmt.step()) {
             results.push(stmt.getAsObject());
@@ -338,20 +397,20 @@ const API = {
         }
         if (user.bio) {
             // Stopwords dışında 4+ karakter kelimeler
-            const stopwords = ['ve','bir','bu','ile','da','de','için','olan','olan','benim','ama','daha','gibi','olarak'];
+            const stopwords = ['ve', 'bir', 'bu', 'ile', 'da', 'de', 'için', 'olan', 'olan', 'benim', 'ama', 'daha', 'gibi', 'olarak'];
             user.bio.toLowerCase().split(/[\s,;.!?]+/).filter(w => w.length >= 4 && !stopwords.includes(w)).forEach(w => userKeywords.push(w));
         }
 
         // Kategori -> anahtar kelime haritası (kapsamlı)
         const catMap = {
-            'Yazılım': ['javascript','typescript','python','java','c++','c#','node','nodejs','react','vue','angular','backend','fullstack','api','rest','graphql','git','docker','kubernetes','linux','ruby','golang','rust','spring','django','flask','express','next','php','laravel','microservice','aws','devops','yazılım','kod','programlama','geliştirme'],
-            'Web':     ['web','html','css','react','vue','angular','frontend','tasarım','figma','ui','ux','wordpress','bootstrap','tailwind','sass','scss','webflow','next','nuxt','jquery','responsive','animasyon','svg','canva','sketch','adobexd','kullanıcı deneyimi','arayüz'],
-            'Veri':    ['python','pandas','numpy','sql','nosql','mysql','postgresql','mongodb','excel','tableau','powerbi','veri','data','analiz','analitik','istatistik','makine öğrenmesi','ml','tensorflow','pytorch','scikit','spark','hadoop','etl','pipeline','rapor','görselleştirme','keras','r dili'],
-            'Pazarlama':['pazarlama','marketing','seo','sem','sosyal medya','instagram','tiktok','google ads','meta ads','facebook','reklam','kampanya','dijital','içerik','content','copywriting','email','influencer','marka','marka yönetimi','analitik','crm','hubspot']
+            'Yazılım': ['javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'node', 'nodejs', 'react', 'vue', 'angular', 'backend', 'fullstack', 'api', 'rest', 'graphql', 'git', 'docker', 'kubernetes', 'linux', 'ruby', 'golang', 'rust', 'spring', 'django', 'flask', 'express', 'next', 'php', 'laravel', 'microservice', 'aws', 'devops', 'yazılım', 'kod', 'programlama', 'geliştirme'],
+            'Web': ['web', 'html', 'css', 'react', 'vue', 'angular', 'frontend', 'tasarım', 'figma', 'ui', 'ux', 'wordpress', 'bootstrap', 'tailwind', 'sass', 'scss', 'webflow', 'next', 'nuxt', 'jquery', 'responsive', 'animasyon', 'svg', 'canva', 'sketch', 'adobexd', 'kullanıcı deneyimi', 'arayüz'],
+            'Veri': ['python', 'pandas', 'numpy', 'sql', 'nosql', 'mysql', 'postgresql', 'mongodb', 'excel', 'tableau', 'powerbi', 'veri', 'data', 'analiz', 'analitik', 'istatistik', 'makine öğrenmesi', 'ml', 'tensorflow', 'pytorch', 'scikit', 'spark', 'hadoop', 'etl', 'pipeline', 'rapor', 'görselleştirme', 'keras', 'r dili'],
+            'Pazarlama': ['pazarlama', 'marketing', 'seo', 'sem', 'sosyal medya', 'instagram', 'tiktok', 'google ads', 'meta ads', 'facebook', 'reklam', 'kampanya', 'dijital', 'içerik', 'content', 'copywriting', 'email', 'influencer', 'marka', 'marka yönetimi', 'analitik', 'crm', 'hubspot']
         };
 
-        // Tüm ilanları çek
-        const ilanStmt = db.prepare("SELECT * FROM ilanlar ORDER BY id DESC");
+        // Tüm ilanları çek - LIMIT ile en son 100 ilanla sınırla (performans)
+        const ilanStmt = db.prepare("SELECT * FROM ilanlar ORDER BY id DESC LIMIT 100");
         const ilanlar = [];
         while (ilanStmt.step()) ilanlar.push(ilanStmt.getAsObject());
         ilanStmt.free();
@@ -385,10 +444,10 @@ const API = {
             const eslesme = Math.min(99, Math.max(12, textScore + catScore));
 
             let eslesme_label;
-            if (eslesme >= 75)      eslesme_label = 'En İyi Eşleşme';
+            if (eslesme >= 75) eslesme_label = 'En İyi Eşleşme';
             else if (eslesme >= 50) eslesme_label = 'Yeteneklerinle Uyumlu';
             else if (eslesme >= 28) eslesme_label = 'İlginizi Çekebilir';
-            else                    eslesme_label = 'Keşfet';
+            else eslesme_label = 'Keşfet';
 
             return { ...ilan, eslesme, eslesme_label };
         });
@@ -404,11 +463,15 @@ const API = {
         const stmt = db.prepare("DELETE FROM ilanlar WHERE id = ?");
         stmt.run([id]);
         stmt.free();
-        
+
         // İlana yapılmış başvuruları da sil (Cascade)
         const stmtBasvuru = db.prepare("DELETE FROM basvurular WHERE jobId = ?");
         stmtBasvuru.run([id]);
         stmtBasvuru.free();
+
+        // VACUUM: Silinen ilan ve başvuruların bıraktığı boşlukları temizle,
+        // veritabanı dosya boyutunu küçült ve sorgu performansını artır
+        db.run("VACUUM");
 
         saveDatabase();
     }
