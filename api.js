@@ -88,10 +88,10 @@ async function initDatabase() {
     }
 
     // Eski veritabanlarında eksik sütunlar varsa ekle (migration)
-    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN bio TEXT;`); } catch (e) { }
-    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN yetenekler TEXT;`); } catch (e) { }
-    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN link TEXT;`); } catch (e) { }
-
+    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN bio TEXT;`); } catch(e){}
+    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN yetenekler TEXT;`); } catch(e){}
+    try { db.run(`ALTER TABLE kullanicilar ADD COLUMN link TEXT;`); } catch(e){}
+    
     // Tüm eski şifresiz hesapları bularak şifrelerini hashlenmiş formata çevir
     try {
         const usersStmt = db.prepare("SELECT id, sifre FROM kullanicilar");
@@ -104,12 +104,12 @@ async function initDatabase() {
             }
         }
         usersStmt.free();
-
+        
         for (let u of updates) {
             const hashed = await hashPassword(u.sifre);
             db.run("UPDATE kullanicilar SET sifre = ? WHERE id = ?", [hashed, u.id]);
         }
-    } catch (e) {
+    } catch(e){
         console.error("Şifre güncelleme hatası:", e);
     }
 
@@ -125,7 +125,7 @@ async function initDatabase() {
     // Başlangıçta bir admin yoksa varsayılan admin kullanıcısı ekle
     const adminCheck = db.exec("SELECT id FROM kullanicilar WHERE email='admin'");
     if (adminCheck.length === 0) {
-        // 'admin' şifresi SHA-256 ile hashlenmiş hali
+        // 'admin' şifresi SHA-256 ile hashlenmiş hali (8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918)
         db.run("INSERT INTO kullanicilar (ad, email, sifre, rol) VALUES ('Sistem Yöneticisi', 'admin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'admin')");
     }
 
@@ -221,13 +221,13 @@ const API = {
 
     register: async (ad, email, sifre, rol) => {
         await API.waitForInit();
-
+        
         // Basit XSS Koruması: Ad alanındaki tehlikeli karakterleri temizle
         const guvenliAd = ad.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
+        
         // Güvenlik: Şifreyi hashle
         const hashedSifre = await hashPassword(sifre);
-
+        
         // Check exists
         let stmt = db.prepare("SELECT id FROM kullanicilar WHERE email = ?");
         stmt.bind([email]);
@@ -242,7 +242,7 @@ const API = {
         stmt.free();
 
         saveDatabase();
-
+        
         const user = { id: db.exec("SELECT last_insert_rowid()")[0].values[0][0], ad: guvenliAd, email, sifre: hashedSifre, rol };
         localStorage.setItem('aktif_kullanici', JSON.stringify(user));
         return user;
@@ -250,10 +250,10 @@ const API = {
 
     login: async (email, sifre) => {
         await API.waitForInit();
-
+        
         // Güvenlik: Girilen şifreyi hashleyerek veritabanındaki ile karşılaştır
         const hashedSifre = await hashPassword(sifre);
-
+        
         const stmt = db.prepare("SELECT * FROM kullanicilar WHERE email = ? AND sifre = ?");
         stmt.bind([email, hashedSifre]);
         if (stmt.step()) {

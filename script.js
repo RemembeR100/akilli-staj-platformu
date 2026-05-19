@@ -102,9 +102,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hoca sorarsa: Sadece giriş yapanlar ilan detayını görebilsin diye burada auth kontrolü yapıyorum
         const user = API.getCurrentUser();
         if (!user) {
-            alert('İlan detaylarını görmek için kayıt olmanız veya giriş yapmanız gerekmektedir.');
-            // Giriş yapmamışsa kayıt sayfasına yönlendiriyorum
-            window.location.href = 'register.html';
+            showToast('İlan detaylarını görebilmek için önce giriş yapmanız veya kayıt olmanız gerekmektedir.', 'warning', 3000);
+            // Giriş yapılmadığı için kayıt sayfasına yönlendiriyorum
+            setTimeout(() => {
+                window.location.href = 'register.html';
+            }, 1500);
             return;
         }
 
@@ -118,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Kullanıcı bu ilana daha önce başvurmuş mu? Onu kontrol ediyorum
             const basvurular = await API.getKullaniciBasvurulari(user.id);
-            const alreadyApplied = basvurular.some(b => b.jobId === id);
+            const alreadyApplied = basvurular.some(b => b.id === id);
             
             if (btnApply) {
                 // Kurumsal hesaplar başvuru yapamasın diye butonu gizliyorum
@@ -129,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Önceden başvurduysa butonu pasifleştiriyorum
                     if (alreadyApplied) {
                         btnApply.textContent = "Başvuru Yapıldı";
+                        btnApply.classList.add('success');
                         btnApply.disabled = true;
                     } else {
                         btnApply.textContent = "Bu İlana Başvur";
@@ -140,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Son olarak modalı görünür yapıyorum (display: flex css'te ortalamak için)
             modal.style.display = 'flex';
         } catch (error) {
-            alert('İlan detayı yüklenemedi: ' + error.message);
+            showToast('İlan detayı yüklenemedi: ' + error.message, 'error');
         }
     };
 
@@ -152,16 +155,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!user) return;
             
             try {
-                btnApply.textContent = "Başvuruluyor...";
+                // Yükleniyor animasyonunu başlat
+                btnApply.textContent = "";
+                btnApply.classList.add('loading');
                 btnApply.disabled = true;
                 
                 await API.basvuruYap(user.id, currentJobId);
                 
-                alert('Başvurunuz başarıyla alındı!');
+                showToast('Başvurunuz başarıyla alındı! Profilinizdeki Başvurular kısmından takip edebilirsiniz.', 'success', 4000);
                 btnApply.textContent = "Başvuru Yapıldı";
                 
             } catch (error) {
-                alert(error.message);
+                showToast(error.message, 'error');
                 btnApply.textContent = "Bu İlana Başvur";
                 btnApply.disabled = false;
             }

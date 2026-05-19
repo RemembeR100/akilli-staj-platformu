@@ -24,14 +24,14 @@
             
             <form id="auth-form">
                 <div id="dynamic-fields">
-                    <!-- Başlangıçta Stajyer Alanları (stj2.jpeg) -->
+                    <!-- Başlangıçta Stajyer Alanları -->
                     <div class="input-group">
                         <label>Ad Soyad</label>
-                        <input type="text" placeholder="Ahmet Yılmaz" required>
+                        <input type="text" id="regAdSoyad" placeholder="Ahmet Yılmaz" required>
                     </div>
                     <div class="input-group">
                         <label>Okul Numarası</label>
-                        <input type="text" placeholder="202401010" required>
+                        <input type="text" id="regOkulNo" placeholder="202401010" required>
                     </div>
                 </div>
 
@@ -57,17 +57,20 @@
             const stajyerTab = document.getElementById('stajyer-tab');
             const kurumsalTab = document.getElementById('kurumsal-tab');
 
+            // Tab değiştirirken mevcut form hatalarını temizle
+            FormValidation.clearFormErrors(document.getElementById('auth-form'));
+
             if (type === 'kurumsal') {
                 kurumsalTab.classList.add('active');
                 stajyerTab.classList.remove('active');
                 fields.innerHTML = `
                     <div class="input-group">
                         <label>Firma Adı</label>
-                        <input type="text" placeholder="Teknoloji A.Ş." required>
+                        <input type="text" id="regFirmaAdi" placeholder="Teknoloji A.Ş." required>
                     </div>
                     <div class="input-group">
                         <label>Vergi Numarası</label>
-                        <input type="text" placeholder="1234567890" required>
+                        <input type="text" id="regVergiNo" placeholder="1234567890" required>
                     </div>
                 `;
             } else {
@@ -76,38 +79,111 @@
                 fields.innerHTML = `
                     <div class="input-group">
                         <label>Ad Soyad</label>
-                        <input type="text" placeholder="Ahmet Yılmaz" required>
+                        <input type="text" id="regAdSoyad" placeholder="Ahmet Yılmaz" required>
                     </div>
                     <div class="input-group">
                         <label>Okul Numarası</label>
-                        <input type="text" placeholder="202401010" required>
+                        <input type="text" id="regOkulNo" placeholder="202401010" required>
                     </div>
                 `;
             }
         }
 
-        document.getElementById('auth-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            // Stajyer veya Kurumsal tabına göre adı al
-            const isKurumsal = document.getElementById('kurumsal-tab').classList.contains('active');
-            let adSoyad = '';
-            
-            // İlk input genellikle ad/soyad veya firma adı oluyor
-            const firstInput = document.querySelector('#dynamic-fields input');
-            if (firstInput) {
-                adSoyad = firstInput.value;
-            }
+        const form = document.getElementById('auth-form');
+        const emailInput = document.getElementById('regEmail');
+        const passwordInput = document.getElementById('regPassword');
+        const dynamicFields = document.getElementById('dynamic-fields');
 
-            const email = document.getElementById('regEmail').value;
-            const sifre = document.getElementById('regPassword').value;
+        // Statik inputlara yazıldıkça hataları temizle
+        emailInput.addEventListener('input', () => FormValidation.clearError(emailInput));
+        passwordInput.addEventListener('input', () => FormValidation.clearError(passwordInput));
+
+        // Dinamik olarak eklenen inputlardaki hataları event delegation ile temizle
+        dynamicFields.addEventListener('input', (e) => {
+            if (e.target.tagName === 'INPUT') {
+                FormValidation.clearError(e.target);
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            FormValidation.clearFormErrors(form);
+
+            const isKurumsal = document.getElementById('kurumsal-tab').classList.contains('active');
+            
+            // Dinamik alanları sorgula
+            const inputs = dynamicFields.getElementsByTagName('input');
+            const firstInput = inputs[0];
+            const secondInput = inputs[1];
+
+            const firstVal = firstInput ? firstInput.value.trim() : '';
+            const secondVal = secondInput ? secondInput.value.trim() : '';
+            const email = emailInput.value.trim();
+            const sifre = passwordInput.value;
             const rol = isKurumsal ? 'kurumsal' : 'stajyer';
 
+            let hasError = false;
+
+            // 1. Dinamik Ad / Firma Doğrulaması
+            if (!firstVal) {
+                FormValidation.showError(firstInput, isKurumsal ? "Firma adı alanı boş bırakılamaz." : "Ad Soyad alanı boş bırakılamaz.");
+                hasError = true;
+            } else if (!isKurumsal && firstVal.split(' ').filter(Boolean).length < 2) {
+                FormValidation.showError(firstInput, "Lütfen adınızı ve soyadınızı tam giriniz (en az iki kelime).");
+                hasError = true;
+            }
+
+            // 2. Dinamik No / Vergi Doğrulaması
+            if (!secondVal) {
+                FormValidation.showError(secondInput, isKurumsal ? "Vergi numarası alanı boş bırakılamaz." : "Okul numarası alanı boş bırakılamaz.");
+                hasError = true;
+            } else if (isKurumsal && !/^\d{10}$/.test(secondVal)) {
+                FormValidation.showError(secondInput, "Vergi numarası tam 10 haneli bir sayı olmalıdır.");
+                hasError = true;
+            } else if (!isKurumsal && !/^\d+$/.test(secondVal)) {
+                FormValidation.showError(secondInput, "Okul numarası sadece rakamlardan oluşmalıdır.");
+                hasError = true;
+            }
+
+            // 3. E-posta Format Doğrulaması
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) {
+                FormValidation.showError(emailInput, "E-posta alanı boş bırakılamaz.");
+                hasError = true;
+            } else if (!emailRegex.test(email)) {
+                FormValidation.showError(emailInput, "Geçersiz e-posta formatı. Örn: ornek@mail.com");
+                hasError = true;
+            }
+
+            // 4. Şifre Karakter Sayısı Doğrulaması (Min 6 Karakter)
+            if (!sifre) {
+                FormValidation.showError(passwordInput, "Şifre alanı boş bırakılamaz.");
+                hasError = true;
+            } else if (sifre.length < 6) {
+                FormValidation.showError(passwordInput, "Güvenliğiniz için şifre en az 6 karakter olmalıdır.");
+                hasError = true;
+            }
+
+            if (hasError) return;
+
             try {
-                // Kayıt ol
-                await API.register(adSoyad, email, sifre, rol);
-                window.location.href = 'index.html';
+                const btn = form.querySelector('.btn-primary');
+                btn.textContent = 'Kayıt Yapılıyor...';
+                btn.disabled = true;
+
+                await API.register(firstVal, email, sifre, rol);
+                showToast('Kayıt başarıyla tamamlandı! Giriş yapılıyor...', 'success', 2000);
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1200);
             } catch (error) {
-                alert(error.message);
+                showToast(error.message, 'error');
+                if (error.message.includes('zaten kayıtlı') || error.message.includes('e-posta')) {
+                    FormValidation.showError(emailInput, 'Bu e-posta adresi zaten kullanımda.');
+                }
+                const btn = form.querySelector('.btn-primary');
+                btn.textContent = 'Kayıt Ol';
+                btn.disabled = false;
             }
         });
     </script>
