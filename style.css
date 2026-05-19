@@ -161,3 +161,78 @@ button[style*="color: #ef4444"]:hover, a.btn-details[style*="color: #ef4444"]:ho
 a[style*="color: #2563EB"] {
     color: var(--accent-color) !important;
 }
+
+/* Başvuru Butonu Animasyonları */
+#btnApply {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+#btnApply.loading {
+    background: transparent !important;
+    color: transparent !important;
+    border: 2px solid var(--surface-hover) !important;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin: 15px auto 0;
+    padding: 0;
+    pointer-events: none;
+    box-shadow: none !important;
+}
+
+#btnApply.loading::after {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 3px solid transparent;
+    border-top-color: var(--accent-color);
+    border-right-color: var(--accent-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+#btnApply.success {
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #10b981 !important;
+    border: 1px solid #10b981 !important;
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2) !important;
+    pointer-events: none;
+}
+
+#btnApply.success::before {
+    content: '✓';
+    font-size: 1.2rem;
+    font-weight: bold;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.4); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Modal Başarı Animasyonu (Glow Effect) */
+.modal-content.success-glow {
+    animation: successPulse 1s ease-out;
+}
+
+@keyframes successPulse {
+    0% { box-shadow: var(--shadow-lg); border-color: var(--border-color); }
+    50% { box-shadow: 0 0 30px 5px rgba(16, 185, 129, 0.15); border-color: #10b981; }
+    100% { box-shadow: var(--shadow-lg); border-color: var(--border-color); }
+}

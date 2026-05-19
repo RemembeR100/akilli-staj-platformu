@@ -118,9 +118,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (user.rol === 'kurumsal') {
                     btnApply.style.display = 'none'; // Kurumsal başvuru yapamaz
                 } else {
-                    btnApply.style.display = 'block';
+                    btnApply.style.display = 'flex';
+                    btnApply.className = 'btn-primary'; // Sınıfları sıfırla
                     if (alreadyApplied) {
                         btnApply.textContent = "Başvuru Yapıldı";
+                        btnApply.classList.add('success');
                         btnApply.disabled = true;
                     } else {
                         btnApply.textContent = "Bu İlana Başvur";
@@ -143,16 +145,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!user) return;
             
             try {
-                btnApply.textContent = "Başvuruluyor...";
+                // Yükleniyor animasyonunu başlat
+                btnApply.textContent = "";
+                btnApply.classList.add('loading');
                 btnApply.disabled = true;
                 
                 await API.basvuruYap(user.id, currentJobId);
                 
-                alert('Başvurunuz başarıyla alındı!');
-                btnApply.textContent = "Başvuru Yapıldı";
+                // Başarı animasyonunu göster (kısa bir bekleme ile)
+                setTimeout(() => {
+                    btnApply.classList.remove('loading');
+                    btnApply.classList.add('success');
+                    btnApply.textContent = "Başvuru Başarılı";
+                    
+                    const modalContent = document.querySelector('.modal-content');
+                    modalContent.classList.add('success-glow');
+                    setTimeout(() => modalContent.classList.remove('success-glow'), 1000);
+                }, 800);
                 
             } catch (error) {
                 alert(error.message);
+                btnApply.className = 'btn-primary';
                 btnApply.textContent = "Bu İlana Başvur";
                 btnApply.disabled = false;
             }
