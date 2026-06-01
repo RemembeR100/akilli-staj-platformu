@@ -617,7 +617,9 @@
             });
         }
 
-        /* ---- Başvurular ---- */
+        /* ---- Başvurular (SCRUM-50) ---- */
+        // Hoca Sorarsa: Burada kullanıcının veritabanındaki başvurularını (api.getKullaniciBasvurulari) çekiyoruz.
+        // Gelen duruma göre (örn: 'Başvuru Alındı') dinamik olarak CSS sınıfı atayıp renkli badge gösteriyoruz.
         async function loadBasvurular(userId) {
             const list = document.getElementById('appliedJobsList');
             const basvurular = await API.getKullaniciBasvurulari(userId);
@@ -626,11 +628,20 @@
             basvurular.forEach(b => {
                 const card = document.createElement('div'); card.className = 'job-card';
                 card.style.cssText = 'box-shadow:none;border:1px solid #3e3e42;';
+                
+                // Duruma göre CSS sınıfı belirleme
+                let badgeClass = 'status-pending';
+                if (b.durum === 'Onaylandı') badgeClass = 'status-approved';
+                else if (b.durum === 'Reddedildi') badgeClass = 'status-rejected';
+
                 card.innerHTML = `
                     <div class="job-info" style="flex:1;">
                         <h3>${b.pozisyon}</h3>
                         <p>${b.sirket_adi} • ${b.lokasyon} (${b.calisma_sekli})</p>
-                        <span class="job-date" style="color:#3b82f6;">Durum: ${b.durum} | Tarih: ${b.tarih}</span>
+                        <div style="margin-top:12px; display:flex; align-items:center; gap:10px;">
+                            <span class="status-badge ${badgeClass}">${b.durum}</span>
+                            <span class="job-date" style="margin-top:0;">Tarih: ${b.tarih}</span>
+                        </div>
                     </div>
                     <div style="display:flex; gap:10px; align-items:center;">
                         <a href="index.html?ilan_id=${b.jobId}" style="text-decoration:none;">

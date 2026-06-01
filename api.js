@@ -11,8 +11,9 @@
  *   - API nesnesi     : Tüm CRUD ve iş mantığı metodları
  */
 
-// Güvenlik: Şifreleri SHA-256 ile hashlemek için yardımcı fonksiyon
-async function hashPassword(sifre) {
+    // Güvenlik (SCRUM-47): Şifreleri düz metin yerine SHA-256 algoritmasıyla hashleyerek saklamak
+    // için kullandığımız asenkron fonksiyon. Web Crypto API kullanılmıştır.
+    async function hashPassword(sifre) {
     const msgBuffer = new TextEncoder().encode(sifre);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -277,8 +278,15 @@ const API = {
 
     profilGuncelle: async (id, ad, bio, yetenekler, link) => {
         await API.waitForInit();
+
+        // Güvenlik (SCRUM-47): XSS saldırılarına karşı HTML etiketlerini (< >) temizliyoruz.
+        const guvenliAd = ad ? ad.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+        const guvenliBio = bio ? bio.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+        const guvenliLink = link ? link.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+
+        // Veritabanı Güncelleme (UPDATE sorgusu)
         const stmt = db.prepare("UPDATE kullanicilar SET ad = ?, bio = ?, yetenekler = ?, link = ? WHERE id = ?");
-        stmt.run([ad, bio, yetenekler, link, id]);
+        stmt.run([guvenliAd, guvenliBio, yetenekler, guvenliLink, id]);
         stmt.free();
         saveDatabase();
 
@@ -343,11 +351,17 @@ const API = {
     },
 
     // Sadece Kurumsal Hesaplar İçin: İlan Ekle
+    // Hoca Sorarsa: Kurumsal hesaplar buradan sisteme ilan ekler. XSS koruması ile metinler temizlenir.
     ilanEkle: async (sirket_adi, pozisyon, lokasyon, calisma_sekli, kategori, detay) => {
         await API.waitForInit();
         const tarih = new Date().toLocaleDateString('tr-TR');
+
+        // Güvenlik (SCRUM-47): XSS Koruması
+        const gPozisyon = pozisyon ? pozisyon.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+        const gDetay = detay ? detay.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+
         const stmt = db.prepare("INSERT INTO ilanlar (sirket_adi, pozisyon, lokasyon, calisma_sekli, kategori, tarih, detay) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        stmt.run([sirket_adi, pozisyon, lokasyon, calisma_sekli, kategori, tarih, detay]);
+        stmt.run([sirket_adi, gPozisyon, lokasyon, calisma_sekli, kategori, tarih, gDetay]);
         stmt.free();
         saveDatabase();
     },

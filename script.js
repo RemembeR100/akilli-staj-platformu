@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentJobId = null;
 
     // İlanları Yükle ve Ekrana Bas (Burada filtreleme falan da var)
+    // Hoca Sorarsa: Bu fonksiyon asenkron (async) çalışır çünkü veritabanından verilerin
+    // gelmesi zaman alabilir. 'await API.getIlanlar' ile verilerin gelmesini bekliyoruz.
     async function loadIlanlar(filters = {}) {
         // Eğer div yoksa (mesela profil sayfasındaysak) boşuna çalıştırmayalım hata vermesin
         if (!listesiContainer) return; 
@@ -38,6 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // İlan HTML'ini oluştur
+    // Hoca Sorarsa: Veritabanından gelen her ilan objesini alıp ekranda bir div kartı (job-card)
+    // içerisine yerleştiriyoruz (DOM Manipülasyonu).
     function renderIlanlar(ilanlar) {
         listesiContainer.innerHTML = '';
         const user = API.getCurrentUser();
@@ -98,8 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // İlan Detayını Aç (Modalı gösteren kısım)
+    // Hoca Sorarsa: Sadece giriş yapanlar ilan detayını görebilsin diye burada auth (kimlik) kontrolü yapıyorum.
     window.openDetay = async function(id) {
-        // Hoca sorarsa: Sadece giriş yapanlar ilan detayını görebilsin diye burada auth kontrolü yapıyorum
         const user = API.getCurrentUser();
         if (!user) {
             showToast('İlan detaylarını görebilmek için önce giriş yapmanız veya kayıt olmanız gerekmektedir.', 'warning', 3000);
@@ -128,6 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnApply.style.display = 'none'; 
                 } else {
                     btnApply.style.display = 'block';
+                    btnApply.classList.add('btn-apply'); // Animasyonlar için (SCRUM-49)
+                    
                     // Önceden başvurduysa butonu pasifleştiriyorum
                     if (alreadyApplied) {
                         btnApply.textContent = "Başvuru Yapıldı";
@@ -135,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         btnApply.disabled = true;
                     } else {
                         btnApply.textContent = "Bu İlana Başvur";
+                        btnApply.classList.remove('success', 'loading');
                         btnApply.disabled = false;
                     }
                 }
@@ -147,7 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Başvuru Yapma Olayı
+    // Başvuru Yapma Olayı (SCRUM-49 & SCRUM-51)
+    // Hoca Sorarsa: Burada bir Event Listener var. Butona tıklanınca try-catch bloğu içinde
+    // api.js'teki basvuruYap metodunu çağırıyor. Animasyon sınıflarını (loading, success) burada ekliyoruz.
     if (btnApply) {
         btnApply.addEventListener('click', async () => {
             if (!currentJobId) return;
@@ -155,18 +164,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!user) return;
             
             try {
-                // Yükleniyor animasyonunu başlat
+                // Yükleniyor animasyonunu başlat (Spinner CSS'ini tetikler)
                 btnApply.textContent = "";
                 btnApply.classList.add('loading');
                 btnApply.disabled = true;
                 
+                // İş mantığı: Veritabanına kaydet
                 await API.basvuruYap(user.id, currentJobId);
                 
-                showToast('Başvurunuz başarıyla alındı! Profilinizdeki Başvurular kısmından takip edebilirsiniz.', 'success', 4000);
-                btnApply.textContent = "Başvuru Yapıldı";
+                // Animasyonu başarı durumuna geçir (Yeşil buton)
+                setTimeout(() => {
+                    btnApply.classList.remove('loading');
+                    btnApply.classList.add('success');
+                    btnApply.textContent = "Başvuru Yapıldı";
+                    showToast('Başvurunuz başarıyla alındı! Profilinizdeki Başvurular kısmından takip edebilirsiniz.', 'success', 4000);
+                }, 800); // Gerçekçi hissettirmek için 800ms bekletiyoruz
                 
             } catch (error) {
                 showToast(error.message, 'error');
+                btnApply.classList.remove('loading');
                 btnApply.textContent = "Bu İlana Başvur";
                 btnApply.disabled = false;
             }
