@@ -20,8 +20,8 @@
             <h2 style="text-align: center; margin-bottom: 20px;">Giriş Yap</h2>
             <form id="loginForm">
                 <div class="input-group">
-                    <label>E-posta veya Kullanıcı Adı</label>
-                    <input type="text" id="loginEmail" placeholder="admin veya e-posta girin" required>
+                    <label>E-posta</label>
+                    <input type="text" id="loginEmail" placeholder="ornek@mail.com" required>
                 </div>
                 <div class="input-group">
                     <label>Şifre</label>
@@ -35,7 +35,8 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="api.js"></script>
     <script src="auth.js"></script>
     <script>
@@ -56,7 +57,7 @@
             let hasError = false;
 
             if (!email) {
-                FormValidation.showError(emailInput, "E-posta veya kullanıcı adı alanı boş olamaz.");
+                FormValidation.showError(emailInput, "E-posta alanı boş olamaz.");
                 hasError = true;
             }
             if (!sifre) {
@@ -78,7 +79,7 @@
                 }, 1200);
             } catch (error) {
                 showToast(error.message, 'error');
-                if (error.message.includes('şifre') || error.message.includes('şifre')) {
+                if (error.message.includes('şifre') || error.message.includes('hatalı')) {
                     FormValidation.showError(passwordInput, 'E-posta veya şifre hatalı.');
                 } else {
                     FormValidation.showError(emailInput, 'Kullanıcı bulunamadı.');

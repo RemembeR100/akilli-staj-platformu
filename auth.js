@@ -2,6 +2,7 @@
  * auth.js
  * Sayfalardaki oturum yönetimini ve navbar güncellemelerini sağlar.
  * Ayrıca SCRUM-62 kapsamında modern UX bildirim, onay penceresi ve form doğrulama sistemlerini tanımlar.
+ * Supabase Auth entegrasyonu ile çalışır.
  */
 
 // ==========================================================================
@@ -170,7 +171,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     const navLinks = document.querySelector('.nav-links');
-    const user = API.getCurrentUser();
+    
+    // getCurrentUser artık async
+    const user = await API.getCurrentUser();
 
     if (navLinks) {
         if (user) {
@@ -190,9 +193,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <li><a href="#" id="btnLogout" class="btn-nav" style="background:#ef4444; color:white!important;">Çıkış Yap</a></li>
             `;
 
-            document.getElementById('btnLogout').addEventListener('click', (e) => {
+            document.getElementById('btnLogout').addEventListener('click', async (e) => {
                 e.preventDefault();
-                API.logout();
+                await API.logout();
                 window.location.href = 'index.html';
             });
             

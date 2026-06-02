@@ -67,18 +67,19 @@
                     <label>Detaylar / İş Tanımı</label>
                     <textarea id="ilanDetay" rows="5" style="width: 100%; padding: 14px; border: none; border-radius: 8px; outline: none; background: #2b2d31; color: #fff; box-shadow: inset 4px 4px 8px #1d1e21, inset -4px -4px 8px #393c41; font-size: 1rem; resize: vertical;" required placeholder="Adaydan beklenen yetenekler ve iş tanımını detaylıca yazınız..."></textarea>
                 </div>
-                <button type="submit" class="btn-primary">İlanı Veritabanına Ekle (Yayınla)</button>
+                <button type="submit" class="btn-primary">İlanı Yayınla</button>
             </form>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="api.js"></script>
     <script src="auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             await API.waitForInit();
-            const user = API.getCurrentUser();
+            const user = await API.getCurrentUser();
             if (!user || user.rol !== 'kurumsal') {
                 showToast('Bu sayfayı görüntülemek için kurumsal üye girişi yapmalısınız!', 'warning', 3000);
                 setTimeout(() => {
@@ -148,7 +149,7 @@
                 } catch (err) {
                     showToast('Hata: ' + err.message, 'error');
                     const btn = form.querySelector('.btn-primary');
-                    btn.textContent = 'İlanı Veritabanına Ekle (Yayınla)';
+                    btn.textContent = 'İlanı Yayınla';
                     btn.disabled = false;
                 }
             });

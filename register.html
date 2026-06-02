@@ -51,6 +51,10 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="api.js"></script>
+    <script src="auth.js"></script>
     <script>
         function toggleForm(type) {
             const fields = document.getElementById('dynamic-fields');
@@ -178,7 +182,7 @@
                 }, 1200);
             } catch (error) {
                 showToast(error.message, 'error');
-                if (error.message.includes('zaten kayıtlı') || error.message.includes('e-posta')) {
+                if (error.message.includes('zaten kayıtlı') || error.message.includes('e-posta') || error.message.includes('already')) {
                     FormValidation.showError(emailInput, 'Bu e-posta adresi zaten kullanımda.');
                 }
                 const btn = form.querySelector('.btn-primary');
@@ -187,8 +191,5 @@
             }
         });
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
-    <script src="api.js"></script>
-    <script src="auth.js"></script>
 </body>
 </html>

@@ -441,7 +441,8 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="api.js"></script>
     <script src="auth.js"></script>
     <script>
@@ -560,7 +561,7 @@
             }
 
             if (link) {
-                const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+                const urlRegex = /^(https?:\/\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\/\\w \\.-]*)*\/?$/;
                 if (!urlRegex.test(link)) {
                     FormValidation.showError(editLinkInput, "Geçersiz web adresi. Örn: https://linkedin.com/in/kullanici");
                     hasError = true;
@@ -573,7 +574,8 @@
             btn.textContent = 'Kaydediliyor...'; btn.disabled = true;
             try {
                 await API.profilGuncelle(currentUser.id, ad, bio, yetenekler, link);
-                currentUser = API.getCurrentUser();
+                // Güncel kullanıcıyı yeniden çek
+                currentUser = await API.getCurrentUser();
                 updateHero(currentUser);
                 document.getElementById('editPanel').style.display = 'none';
                 showToast('Profiliniz başarıyla güncellendi!', 'success');
@@ -618,8 +620,6 @@
         }
 
         /* ---- Başvurular (SCRUM-50) ---- */
-        // Hoca Sorarsa: Burada kullanıcının veritabanındaki başvurularını (api.getKullaniciBasvurulari) çekiyoruz.
-        // Gelen duruma göre (örn: 'Başvuru Alındı') dinamik olarak CSS sınıfı atayıp renkli badge gösteriyoruz.
         async function loadBasvurular(userId) {
             const list = document.getElementById('appliedJobsList');
             const basvurular = await API.getKullaniciBasvurulari(userId);
@@ -647,7 +647,7 @@
                         <a href="index.html?ilan_id=${b.jobId}" style="text-decoration:none;">
                             <button class="btn-details" style="background:rgba(99,102,241,0.1); border-color:var(--accent-color); color:var(--accent-color);">İlanı Gör</button>
                         </a>
-                        <button class="btn-details" style="color:#ef4444;border-color:#ef4444;" onclick="iptalEt(${b.jobId})">İptal Et</button>
+                        <button class="btn-details" style="color:#ef4444;border-color:#ef4444;" onclick="iptalEt('${b.jobId}')">İptal Et</button>
                     </div>`;
                 list.appendChild(card);
             });
@@ -696,7 +696,7 @@
         /* ---- Init ---- */
         document.addEventListener('DOMContentLoaded', async () => {
             await API.waitForInit();
-            currentUser = API.getCurrentUser();
+            currentUser = await API.getCurrentUser();
             if (!currentUser) { window.location.href = 'login.html'; return; }
 
             updateHero(currentUser);
