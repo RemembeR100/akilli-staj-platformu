@@ -18,6 +18,7 @@ Sisteme kayıt olan Stajyer, Kurumsal ve Admin hesaplarının profil bilgilerini
 | `bio` | TEXT | NULL | Kullanıcının kendini anlattığı kısa metin (Stajyerler için) |
 | `yetenekler`| TEXT | NULL | Virgülle ayrılmış yetenek listesi (örn: "HTML, CSS, Python") |
 | `link` | TEXT | NULL | Kullanıcının portfolyo veya LinkedIn bağlantısı |
+| `telefon` | TEXT | NULL | Kullanıcının iletişim telefon numarası |
 | `created_at`| TIMESTAMPTZ | DEFAULT NOW() | Oluşturulma tarihi |
 
 ---

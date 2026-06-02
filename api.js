@@ -145,19 +145,21 @@ const API = {
     },
 
     // Profil Güncelle
-    profilGuncelle: async (id, ad, bio, yetenekler, link) => {
+    profilGuncelle: async (id, ad, bio, yetenekler, link, telefon) => {
         // XSS Koruması
         const guvenliAd = ad ? ad.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
         const guvenliBio = bio ? bio.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
         const guvenliLink = link ? link.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+        const guvenliTelefon = telefon ? telefon.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
 
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('kullanicilar')
             .update({
                 ad: guvenliAd,
                 bio: guvenliBio,
                 yetenekler: yetenekler,
-                link: guvenliLink
+                link: guvenliLink,
+                telefon: guvenliTelefon
             })
             .eq('id', id);
 
@@ -300,9 +302,9 @@ const API = {
 
         if (!ilanlar || ilanlar.length === 0) return [];
 
-        // Profil boşsa popüler ilanları döndür
+        // Profil boşsa uyarı veren ilanları döndür
         if (userKeywords.length === 0) {
-            return ilanlar.slice(0, 6).map(i => ({ ...i, eslesme: 55, eslesme_label: 'Popüler' }));
+            return ilanlar.slice(0, 6).map(i => ({ ...i, eslesme: 15, eslesme_label: 'Profilini Doldur' }));
         }
 
         const skorluIlanlar = ilanlar.map(ilan => {
@@ -332,6 +334,33 @@ const API = {
         });
 
         return skorluIlanlar.sort((a, b) => b.eslesme - a.eslesme).slice(0, 6);
+    },
+
+    // İŞVEREN METOTLARI
+    getIlanBasvurulari: async (ilanId) => {
+        const { data, error } = await supabaseClient
+            .from('basvurular')
+            .select(`
+                id,
+                durum,
+                tarih,
+                user_id,
+                kullanicilar ( ad, email, telefon, yetenekler, link )
+            `)
+            .eq('job_id', ilanId)
+            .order('id', { ascending: false });
+
+        if (error) throw new Error('Başvurular yüklenirken hata: ' + error.message);
+        return data || [];
+    },
+
+    basvuruDurumGuncelle: async (basvuruId, yeniDurum) => {
+        const { error } = await supabaseClient
+            .from('basvurular')
+            .update({ durum: yeniDurum })
+            .eq('id', basvuruId);
+
+        if (error) throw new Error('Başvuru durumu güncellenirken hata: ' + error.message);
     },
 
     // ADMİN METOTLARI
