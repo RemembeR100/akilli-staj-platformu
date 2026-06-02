@@ -80,6 +80,10 @@
                         <label>Vergi Numarası</label>
                         <input type="text" id="regVergiNo" placeholder="1234567890" required>
                     </div>
+                    <div class="input-group">
+                        <label>Telefon Numarası <span style="color:#ef4444">*</span></label>
+                        <input type="tel" id="regTelefon" placeholder="0555 555 55 55" required>
+                    </div>
                 `;
             } else {
                 stajyerTab.classList.add('active');
@@ -127,11 +131,11 @@
             const inputs = dynamicFields.getElementsByTagName('input');
             const firstInput = inputs[0];
             const secondInput = inputs[1];
-            const thirdInput = inputs[2]; // Sadece stajyer için telefon
+            const thirdInput = inputs[2]; // Her iki rol için telefon (3. alan)
 
             const firstVal = firstInput ? firstInput.value.trim() : '';
             const secondVal = secondInput ? secondInput.value.trim() : '';
-            const telefonVal = (!isKurumsal && thirdInput) ? thirdInput.value.trim() : '';
+            const telefonVal = thirdInput ? thirdInput.value.trim() : '';
             const email = emailInput.value.trim();
             const sifre = passwordInput.value;
             const rol = isKurumsal ? 'kurumsal' : 'stajyer';
@@ -159,15 +163,13 @@
                 hasError = true;
             }
 
-            // 3. Telefon Doğrulaması (sadece stajyer)
-            if (!isKurumsal) {
-                if (!telefonVal) {
-                    FormValidation.showError(thirdInput, "Telefon numarası zorunludur.");
-                    hasError = true;
-                } else if (telefonVal.replace(/\s/g, '').length < 10) {
-                    FormValidation.showError(thirdInput, "Lütfen geçerli bir telefon numarası giriniz (en az 10 rakam).");
-                    hasError = true;
-                }
+            // 3. Telefon Doğrulaması (tüm roller)
+            if (!telefonVal) {
+                FormValidation.showError(thirdInput, "Telefon numarası zorunludur.");
+                hasError = true;
+            } else if (telefonVal.replace(/\s/g, '').length < 10) {
+                FormValidation.showError(thirdInput, "Lütfen geçerli bir telefon numarası giriniz (en az 10 rakam).");
+                hasError = true;
             }
 
             // 4. E-posta Format Doğrulaması
