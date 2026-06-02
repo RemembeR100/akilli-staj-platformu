@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // api.js'teki getIlanlar fonksiyonunu çağırıp veritabanından ilanları çekiyoruz
             const ilanlar = await API.getIlanlar(finalFilters);
-            renderIlanlar(ilanlar);
+            await renderIlanlar(ilanlar);
         } catch (error) {
             listesiContainer.innerHTML = '<div class="loading">İlanlar yüklenirken bir hata oluştu.</div>';
             console.error(error);
@@ -42,9 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // İlan HTML'ini oluştur
     // Hoca Sorarsa: Veritabanından gelen her ilan objesini alıp ekranda bir div kartı (job-card)
     // içerisine yerleştiriyoruz (DOM Manipülasyonu).
-    function renderIlanlar(ilanlar) {
+    async function renderIlanlar(ilanlar) {
         listesiContainer.innerHTML = '';
-        const user = API.getCurrentUser();
+        const user = await API.getCurrentUser();
 
         if (ilanlar.length === 0) {
             listesiContainer.innerHTML = '<div class="loading">Kriterlerinize uygun ilan bulunamadı.</div>';
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Backend'den matchRate gelirse onu kullanır, gelmezse kullanıcı yeteneklerine göre simüle eder
             let matchRate = ilan.matchRate;
             
-            if (matchRate === undefined && user && user.rol === 'ogrenci') {
+            if (matchRate === undefined && user && user.rol === 'stajyer') {
                 // Basit bir simülasyon: Pozisyon veya detayda kullanıcının yeteneklerinden biri geçiyorsa yüksek ver
                 const yetenekler = (user.yetenekler || '').toLowerCase();
                 const ilanIcerik = (ilan.pozisyon + ' ' + ilan.detay).toLowerCase();
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             let matchHtml = '';
-            if (user && user.rol === 'ogrenci' && matchRate !== undefined) {
+            if (user && user.rol === 'stajyer' && matchRate !== undefined) {
                 matchHtml = `
                     <div class="match-rate-container" title="Yetenekleriniz ve profil bilgileriniz bu ilanla karşılaştırıldı.">
                         <div class="match-progress-bg">
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // İlan Detayını Aç (Modalı gösteren kısım)
     // Hoca Sorarsa: Sadece giriş yapanlar ilan detayını görebilsin diye burada auth (kimlik) kontrolü yapıyorum.
     window.openDetay = async function(id) {
-        const user = API.getCurrentUser();
+        const user = await API.getCurrentUser();
         if (!user) {
             showToast('İlan detaylarını görebilmek için önce giriş yapmanız veya kayıt olmanız gerekmektedir.', 'warning', 3000);
             // Giriş yapılmadığı için kayıt sayfasına yönlendiriyorum
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Kullanıcı bu ilana daha önce başvurmuş mu? Onu kontrol ediyorum
             const basvurular = await API.getKullaniciBasvurulari(user.id);
-            const alreadyApplied = basvurular.some(b => b.id === id);
+            const alreadyApplied = basvurular.some(b => b.id === id || b.jobId === id);
             
             if (btnApply) {
                 // Kurumsal hesaplar başvuru yapamasın diye butonu gizliyorum
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnApply) {
         btnApply.addEventListener('click', async () => {
             if (!currentJobId) return;
-            const user = API.getCurrentUser();
+            const user = await API.getCurrentUser();
             if (!user) return;
             
             try {

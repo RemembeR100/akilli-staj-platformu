@@ -20,7 +20,6 @@
         
         <div class="search-filter-section" style="justify-content: space-between; align-items: center; background: #2b2d31; padding: 20px; border-radius: 12px; box-shadow: inset 4px 4px 8px #1d1e21, inset -4px -4px 8px #393c41;">
             <p style="color: #9ca3af; font-size: 1.1rem;">Sistemdeki tüm verileri ve ilanları buradan yönetebilirsiniz.</p>
-            <button id="btnDownloadSQLite" class="btn-primary" style="width: auto; margin-top: 0; background: #10b981; color: white;">Veritabanını İndir (.sqlite)</button>
         </div>
 
         <h2 style="margin-bottom: 20px; color: #e2e8f0; font-size: 1.5rem; margin-top: 40px;">Sistemdeki Tüm İlanlar</h2>
@@ -30,13 +29,14 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="api.js"></script>
     <script src="auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             await API.waitForInit();
-            const user = API.getCurrentUser();
+            const user = await API.getCurrentUser();
             
             if (!user || user.rol !== 'admin') {
                 showToast('Bu sayfayı görüntülemek için yetkiniz bulunmamaktadır!', 'error', 3000);
@@ -45,10 +45,6 @@
                 }, 1500);
                 return;
             }
-
-            document.getElementById('btnDownloadSQLite').addEventListener('click', () => {
-                API.downloadSQLite();
-            });
 
             loadAllJobs();
         });
