@@ -387,7 +387,7 @@
                     </div>
                     <div class="input-group full">
                         <label for="editLink">Portfolio / LinkedIn / Web Sitesi</label>
-                        <input type="url" id="editLink" placeholder="https://...">
+                        <input type="text" id="editLink" placeholder="Örn: linkedin.com/in/kullanici">
                     </div>
                     <div class="input-group full">
                         <label for="editBio">Hakkımda</label>
@@ -654,13 +654,7 @@
                 hasError = true;
             }
 
-            if (link) {
-                const urlRegex = /^(https?:\/\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\/\\w \\.-]*)*\/?$/;
-                if (!urlRegex.test(link)) {
-                    FormValidation.showError(editLinkInput, "Geçersiz web adresi. Örn: https://linkedin.com/in/kullanici");
-                    hasError = true;
-                }
-            }
+
 
             if (hasError) return;
 
@@ -837,25 +831,32 @@
                         actions = `<span style="color:${statusColor}; font-weight:bold; padding:6px 12px; background:rgba(255,255,255,0.05); border-radius:6px; border:1px solid ${statusColor}44;">${b.durum}</span>`;
                     }
 
+                    const avatarHtml = k.profil_resmi 
+                        ? `<img src="${k.profil_resmi}" style="width:45px;height:45px;border-radius:50%;object-fit:cover;border:2px solid var(--border-color);flex-shrink:0;">`
+                        : `<div style="width:45px;height:45px;border-radius:50%;background:linear-gradient(135deg, var(--accent-color), #8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.2rem;flex-shrink:0;">${k.ad.charAt(0).toUpperCase()}</div>`;
+
                     return `
-                        <div style="background:var(--bg-color); border:1px solid var(--border-color); border-radius:12px; padding:15px; margin-bottom:12px;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
-                                <div>
-                                    <h4 style="color:var(--text-primary); margin-bottom:5px; font-size:1.05rem;">${k.ad}</h4>
-                                    <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:3px;">📧 ${k.email}</p>
-                                    <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:3px;">📱 ${k.telefon || 'Belirtilmedi'}</p>
-                                    ${k.link ? `<p style="margin-top:5px;"><a href="${k.link}" target="_blank" style="color:var(--accent-color); font-size:0.85rem; text-decoration:none;">🔗 Portfolyo/Bağlantı</a></p>` : ''}
+                        <div style="background:var(--bg-color); border:1px solid var(--border-color); border-radius:12px; padding:15px; margin-bottom:12px; display:flex; gap:15px; flex-wrap:wrap;">
+                            ${avatarHtml}
+                            <div style="flex:1; min-width:200px;">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+                                    <div>
+                                        <h4 style="color:var(--text-primary); margin-bottom:5px; font-size:1.05rem;">${k.ad}</h4>
+                                        <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:3px;">📧 ${k.email}</p>
+                                        <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:3px;">📱 ${k.telefon || 'Belirtilmedi'}</p>
+                                        ${k.link ? `<p style="margin-top:5px;"><a href="${k.link.startsWith('http') ? k.link : 'https://' + k.link}" target="_blank" style="color:var(--accent-color); font-size:0.85rem; text-decoration:none;">🔗 Portfolyo/Bağlantı</a></p>` : ''}
+                                    </div>
+                                    <div style="display:flex; gap:8px;">
+                                        ${actions}
+                                    </div>
                                 </div>
-                                <div style="display:flex; gap:8px;">
-                                    ${actions}
-                                </div>
+                                ${k.yetenekler ? `<div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05);">
+                                    <p style="color:var(--text-secondary); font-size:0.8rem; margin-bottom:6px;">Yetenekler:</p>
+                                    <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                                        ${k.yetenekler.split(',').map(y => `<span style="background:rgba(99,102,241,0.1); color:var(--accent-color); padding:2px 8px; border-radius:12px; font-size:0.75rem;">${y.trim()}</span>`).join('')}
+                                    </div>
+                                </div>` : ''}
                             </div>
-                            ${k.yetenekler ? `<div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.05);">
-                                <p style="color:var(--text-secondary); font-size:0.8rem; margin-bottom:6px;">Yetenekler:</p>
-                                <div style="display:flex; flex-wrap:wrap; gap:5px;">
-                                    ${k.yetenekler.split(',').map(y => `<span style="background:rgba(99,102,241,0.1); color:var(--accent-color); padding:2px 8px; border-radius:12px; font-size:0.75rem;">${y.trim()}</span>`).join('')}
-                                </div>
-                            </div>` : ''}
                         </div>
                     `;
                 }).join('');

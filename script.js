@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Şirket İletişim Bilgilerini Getir
             const employerInfoDiv = document.getElementById('modalEmployerInfo');
-            if (employerInfoDiv && user.rol === 'stajyer') {
+            if (employerInfoDiv) {
                 const sirketBilgi = await API.getSirketBilgileri(ilan.sirket_adi);
                 if (sirketBilgi) {
                     document.getElementById('modalEmpEmail').innerHTML = `✉️ <strong>E-posta:</strong> ${sirketBilgi.email}`;
@@ -140,7 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const linkEl = document.getElementById('modalEmpLink');
                     if (sirketBilgi.link) {
-                        linkEl.innerHTML = `🔗 <strong>Bağlantı:</strong> <a href="${sirketBilgi.link}" target="_blank" style="color:var(--accent-color);">${sirketBilgi.link}</a>`;
+                        const safeLink = sirketBilgi.link.startsWith('http') ? sirketBilgi.link : 'https://' + sirketBilgi.link;
+                        linkEl.innerHTML = `🔗 <strong>Bağlantı:</strong> <a href="${safeLink}" target="_blank" style="color:var(--accent-color);">${sirketBilgi.link}</a>`;
                     } else {
                         linkEl.innerHTML = '';
                     }
@@ -148,8 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     employerInfoDiv.style.display = 'none';
                 }
-            } else if (employerInfoDiv) {
-                employerInfoDiv.style.display = 'none';
             }
             
             // Kullanıcı bu ilana daha önce başvurmuş mu? Onu kontrol ediyorum
