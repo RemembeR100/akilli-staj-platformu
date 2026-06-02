@@ -89,14 +89,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
 
+            const avatarHtml = ilan.profil_resmi 
+                ? `<img src="${ilan.profil_resmi}" style="width:45px;height:45px;border-radius:50%;object-fit:cover;border:2px solid var(--border-color);flex-shrink:0;">`
+                : `<div style="width:45px;height:45px;border-radius:50%;background:linear-gradient(135deg, var(--accent-color), #8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.2rem;flex-shrink:0;">${ilan.sirket_adi.charAt(0).toUpperCase()}</div>`;
+
             card.innerHTML = `
-                <div class="job-info">
-                    <h3>${ilan.pozisyon}</h3>
-                    <p>${ilan.sirket_adi} • ${ilan.lokasyon} (${ilan.calisma_sekli})</p>
-                    ${matchHtml}
-                    <span class="job-date">Yayınlanma: ${ilan.tarih}</span>
+                <div style="display:flex; gap:15px; align-items:flex-start; width:100%;">
+                    ${avatarHtml}
+                    <div class="job-info" style="flex:1;">
+                        <h3>${ilan.pozisyon}</h3>
+                        <p>${ilan.sirket_adi} • ${ilan.lokasyon} (${ilan.calisma_sekli})</p>
+                        ${matchHtml}
+                        <span class="job-date">Yayınlanma: ${ilan.tarih}</span>
+                    </div>
                 </div>
-                <button class="btn-details" onclick="openDetay(${ilan.id})">Detayları Gör</button>
+                <button class="btn-details" style="margin-top:15px;" onclick="openDetay(${ilan.id})">Detayları Gör</button>
             `;
             listesiContainer.appendChild(card);
         });

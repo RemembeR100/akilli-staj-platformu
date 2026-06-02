@@ -51,7 +51,26 @@ const API = {
 
         const { data, error } = await query;
         if (error) throw new Error('İlanlar yüklenirken hata: ' + error.message);
-        return data || [];
+        
+        let ilanlar = data || [];
+        
+        // Şirket profillerini (profil_resmi) çekip ilanlara ekle
+        if (ilanlar.length > 0) {
+            const sirketAdlari = [...new Set(ilanlar.map(i => i.sirket_adi))];
+            const { data: sirketler } = await supabase
+                .from('kullanicilar')
+                .select('ad, profil_resmi')
+                .in('ad', sirketAdlari)
+                .eq('rol', 'kurumsal');
+                
+            if (sirketler) {
+                const sirketMap = {};
+                sirketler.forEach(s => sirketMap[s.ad] = s.profil_resmi);
+                ilanlar = ilanlar.map(i => ({ ...i, profil_resmi: sirketMap[i.sirket_adi] }));
+            }
+        }
+        
+        return ilanlar;
     },
 
     getIlanDetay: async (id) => {
@@ -231,13 +250,30 @@ const API = {
 
         if (error) throw new Error('Başvurular yüklenirken hata: ' + error.message);
 
-        // Mevcut yapıyla uyumlu formata dönüştür
-        return (data || []).map(b => ({
+        let basvurular = (data || []).map(b => ({
             ...b.ilanlar,
             durum: b.durum,
             tarih: b.tarih,
             jobId: b.job_id
         }));
+
+        // Şirket profillerini (profil_resmi) çekip ilanlara ekle
+        if (basvurular.length > 0) {
+            const sirketAdlari = [...new Set(basvurular.map(i => i.sirket_adi))];
+            const { data: sirketler } = await supabase
+                .from('kullanicilar')
+                .select('ad, profil_resmi')
+                .in('ad', sirketAdlari)
+                .eq('rol', 'kurumsal');
+                
+            if (sirketler) {
+                const sirketMap = {};
+                sirketler.forEach(s => sirketMap[s.ad] = s.profil_resmi);
+                basvurular = basvurular.map(i => ({ ...i, profil_resmi: sirketMap[i.sirket_adi] }));
+            }
+        }
+
+        return basvurular;
     },
 
     // Sadece Kurumsal Hesaplar İçin: İlan Ekle
@@ -294,13 +330,31 @@ const API = {
         }
 
         // Tüm ilanları çek
-        const { data: ilanlar } = await supabase
+        const { data: dataIlanlar } = await supabase
             .from('ilanlar')
             .select('*')
             .order('id', { ascending: false })
             .limit(100);
 
-        if (!ilanlar || ilanlar.length === 0) return [];
+        let ilanlar = dataIlanlar || [];
+
+        // Şirket profillerini (profil_resmi) çekip ilanlara ekle
+        if (ilanlar.length > 0) {
+            const sirketAdlari = [...new Set(ilanlar.map(i => i.sirket_adi))];
+            const { data: sirketler } = await supabase
+                .from('kullanicilar')
+                .select('ad, profil_resmi')
+                .in('ad', sirketAdlari)
+                .eq('rol', 'kurumsal');
+                
+            if (sirketler) {
+                const sirketMap = {};
+                sirketler.forEach(s => sirketMap[s.ad] = s.profil_resmi);
+                ilanlar = ilanlar.map(i => ({ ...i, profil_resmi: sirketMap[i.sirket_adi] }));
+            }
+        }
+
+        if (ilanlar.length === 0) return [];
 
         // Yetenek boşsa 15 dön
         if (userKeywords.length === 0) {

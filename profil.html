@@ -377,8 +377,13 @@
                         <input type="tel" id="editTelefon" placeholder="0555 555 55 55">
                     </div>
                     <div class="input-group full">
-                        <label for="editProfilResmi">Profil Resmi URL (İsteğe Bağlı)</label>
-                        <input type="url" id="editProfilResmi" placeholder="https://resim-linki.com/avatar.jpg">
+                        <label>Profil Resmi (İsteğe Bağlı)</label>
+                        <input type="file" id="editProfilResmiFile" accept="image/*" style="padding:10px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-color); color:var(--text-primary); cursor:pointer;">
+                        <input type="hidden" id="editProfilResmi">
+                        <small style="color:var(--text-secondary); display:block; margin-top:5px;">Max 2 MB (Jpg, Png). Resim otomatik sıkıştırılarak veritabanına kaydedilir.</small>
+                        <div id="profilResmiPreview" style="margin-top:10px; width:80px; height:80px; border-radius:50%; overflow:hidden; display:none; border:2px solid var(--accent-color);">
+                            <img id="profilResmiImg" src="" style="width:100%; height:100%; object-fit:cover;">
+                        </div>
                     </div>
                     <div class="input-group full">
                         <label for="editLink">Portfolio / LinkedIn / Web Sitesi</label>
@@ -449,6 +454,57 @@
     <script>
         let currentUser = null;
         let currentSkills = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const editProfilResmiFile = document.getElementById('editProfilResmiFile');
+            const editProfilResmiHidden = document.getElementById('editProfilResmi');
+            const profilResmiPreview = document.getElementById('profilResmiPreview');
+            const profilResmiImg = document.getElementById('profilResmiImg');
+
+            if (editProfilResmiFile) {
+                editProfilResmiFile.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (!file.type.match('image.*')) {
+                        showToast('Lütfen sadece resim dosyası seçin.', 'error');
+                        return;
+                    }
+                    if (file.size > 2 * 1024 * 1024) {
+                        showToast('Resim boyutu çok büyük (Max 2MB).', 'error');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 300;
+                            const MAX_HEIGHT = 300;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                            } else {
+                                if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                            editProfilResmiHidden.value = dataUrl;
+                            profilResmiImg.src = dataUrl;
+                            profilResmiPreview.style.display = 'block';
+                        }
+                        img.src = event.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
 
         /* ---- Yardımcı: Baş harfleri al ---- */
         function initials(name) {
@@ -533,6 +589,19 @@
                 document.getElementById('editAd').value = currentUser.ad || '';
             document.getElementById('editTelefon').value = currentUser.telefon || '';
             document.getElementById('editProfilResmi').value = currentUser.profil_resmi || '';
+            
+            // Profil resmi önizleme sıfırla/göster
+            const preview = document.getElementById('profilResmiPreview');
+            const img = document.getElementById('profilResmiImg');
+            if (currentUser.profil_resmi) {
+                img.src = currentUser.profil_resmi;
+                preview.style.display = 'block';
+            } else {
+                img.src = '';
+                preview.style.display = 'none';
+            }
+            document.getElementById('editProfilResmiFile').value = '';
+
             document.getElementById('editBio').value = currentUser.bio || '';
             document.getElementById('editLink').value = currentUser.link || '';
                 currentSkills = currentUser.yetenekler ? currentUser.yetenekler.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -630,13 +699,20 @@
                 const pctColor = o.eslesme >= 75 ? '#10b981' : o.eslesme >= 50 ? '#6366f1' : '#9ca3af';
                 const pctBg = o.eslesme >= 75 ? 'rgba(16,185,129,0.12)' : o.eslesme >= 50 ? 'rgba(99,102,241,0.12)' : 'rgba(156,163,175,0.1)';
 
+                const avatarHtml = o.profil_resmi 
+                    ? `<img src="${o.profil_resmi}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border-color);flex-shrink:0;">`
+                    : `<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg, var(--accent-color), #8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;flex-shrink:0;">${o.sirket_adi.charAt(0).toUpperCase()}</div>`;
+
                 card.innerHTML = `
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
                         <span class="match-pct" style="background:${pctBg};color:${pctColor};border-color:${pctColor}33;">%${o.eslesme} Eşleşme</span>
                         <span class="match-lbl">${o.eslesme_label}</span>
                     </div>
-                    <h3 style="color:var(--text-primary);font-size:1.1rem;margin-bottom:5px;">${o.pozisyon}</h3>
-                    <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:15px;">${o.sirket_adi} • ${o.lokasyon} (${o.calisma_sekli})</p>
+                    <div style="display:flex; gap:10px; align-items:center; margin-bottom:5px;">
+                        ${avatarHtml}
+                        <h3 style="color:var(--text-primary);font-size:1.1rem;margin:0;">${o.pozisyon}</h3>
+                    </div>
+                    <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:15px;margin-top:8px;">${o.sirket_adi} • ${o.lokasyon} (${o.calisma_sekli})</p>
                     <a href="index.html?ilan_id=${o.id}" style="display:block;text-decoration:none;">
                         <button class="btn-details" style="width:100%;text-align:center;padding:9px;">İlanı İncele →</button>
                     </a>`;
@@ -659,16 +735,23 @@
                 if (b.durum === 'Onaylandı') badgeClass = 'status-approved';
                 else if (b.durum === 'Reddedildi') badgeClass = 'status-rejected';
 
+                const avatarHtml = b.profil_resmi 
+                    ? `<img src="${b.profil_resmi}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid var(--border-color);flex-shrink:0;">`
+                    : `<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, var(--accent-color), #8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;flex-shrink:0;">${b.sirket_adi.charAt(0).toUpperCase()}</div>`;
+
                 card.innerHTML = `
-                    <div class="job-info" style="flex:1;">
-                        <h3>${b.pozisyon}</h3>
-                        <p>${b.sirket_adi} • ${b.lokasyon} (${b.calisma_sekli})</p>
-                        <div style="margin-top:12px; display:flex; align-items:center; gap:10px;">
-                            <span class="status-badge ${badgeClass}">${b.durum}</span>
-                            <span class="job-date" style="margin-top:0;">Tarih: ${b.tarih}</span>
+                    <div style="display:flex; gap:15px; align-items:center; flex:1; flex-wrap:wrap;">
+                        ${avatarHtml}
+                        <div class="job-info" style="flex:1; min-width:200px;">
+                            <h3 style="margin-bottom:3px;">${b.pozisyon}</h3>
+                            <p style="margin-bottom:3px;">${b.sirket_adi} • ${b.lokasyon} (${b.calisma_sekli})</p>
+                            <div style="margin-top:8px; display:flex; align-items:center; gap:10px;">
+                                <span class="status-badge ${badgeClass}">${b.durum}</span>
+                                <span class="job-date" style="margin-top:0;">Tarih: ${b.tarih}</span>
+                            </div>
                         </div>
                     </div>
-                    <div style="display:flex; gap:10px; align-items:center;">
+                    <div style="display:flex; gap:10px; align-items:center; flex-shrink:0; margin-top:10px;">
                         <a href="index.html?ilan_id=${b.jobId}" style="text-decoration:none;">
                             <button class="btn-details" style="background:rgba(99,102,241,0.1); border-color:var(--accent-color); color:var(--accent-color);">İlanı Gör</button>
                         </a>
