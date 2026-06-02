@@ -152,7 +152,7 @@ const API = {
         const guvenliLink = link ? link.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
         const guvenliTelefon = telefon ? telefon.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
 
-        const { error } = await supabaseClient
+        const { error } = await supabase
             .from('kullanicilar')
             .update({
                 ad: guvenliAd,
@@ -338,7 +338,7 @@ const API = {
 
     // İŞVEREN METOTLARI
     getIlanBasvurulari: async (ilanId) => {
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
             .from('basvurular')
             .select(`
                 id,
@@ -355,7 +355,7 @@ const API = {
     },
 
     basvuruDurumGuncelle: async (basvuruId, yeniDurum) => {
-        const { error } = await supabaseClient
+        const { error } = await supabase
             .from('basvurular')
             .update({ durum: yeniDurum })
             .eq('id', basvuruId);
