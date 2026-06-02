@@ -61,25 +61,19 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (matchRate === undefined && user && user.rol === 'stajyer') {
                 const yetenekler = (user.yetenekler || '').toLowerCase();
-                const bio = (user.bio || '').toLowerCase();
                 const ilanIcerik = (ilan.pozisyon + ' ' + (ilan.detay || '') + ' ' + (ilan.kategori || '') + ' ' + (ilan.sirket_adi || '')).toLowerCase();
 
-                // Profil tamamen boşsa → 15% (profil.html ile aynı sonuç)
-                if (!yetenekler && !bio) {
+                // Yetenek boşsa → 15%
+                if (!yetenekler) {
                     matchRate = 15;
                 } else {
-                    // Kullanıcının anahtar kelimelerini çıkar
-                    const keywords = [];
-                    if (yetenekler) yetenekler.split(',').map(y => y.trim()).filter(y => y.length >= 2).forEach(y => keywords.push(y));
-                    if (bio) {
-                        const stopwords = ['ve', 'bir', 'bu', 'ile', 'da', 'de', 'için', 'olan', 'benim', 'ama', 'daha', 'gibi', 'olarak'];
-                        bio.split(/[\s,;.!?]+/).filter(w => w.length >= 4 && !stopwords.includes(w)).forEach(w => keywords.push(w));
-                    }
-                    // Metin eşleşmesi (max 65 puan)
+                    const keywords = yetenekler.split(',').map(y => y.trim()).filter(y => y.length >= 2);
+                    // Metin eşleşmesi
                     const matched = keywords.filter(k => ilanIcerik.includes(k)).length;
-                    const textScore = Math.min(65, matched * 25);
-                    // Toplam skor
-                    matchRate = Math.min(95, Math.max(12, textScore + 12));
+                    
+                    // Basit algoritma (her yetenek için +25, taban puan 15)
+                    if (matched === 0) matchRate = 15;
+                    else matchRate = Math.min(99, 15 + (matched * 25));
                 }
             }
 
@@ -128,6 +122,28 @@ document.addEventListener('DOMContentLoaded', () => {
             modalCompany.textContent = `${ilan.sirket_adi} • ${ilan.lokasyon} (${ilan.calisma_sekli})`;
             modalDetail.textContent = ilan.detay;
             currentJobId = id; // Hangi ilana başvuru yapılacağını bilmek için id'yi global değişkende tutuyorum
+            
+            // Şirket İletişim Bilgilerini Getir
+            const employerInfoDiv = document.getElementById('modalEmployerInfo');
+            if (employerInfoDiv && user.rol === 'stajyer') {
+                const sirketBilgi = await API.getSirketBilgileri(ilan.sirket_adi);
+                if (sirketBilgi) {
+                    document.getElementById('modalEmpEmail').innerHTML = `✉️ <strong>E-posta:</strong> ${sirketBilgi.email}`;
+                    document.getElementById('modalEmpPhone').innerHTML = sirketBilgi.telefon ? `📱 <strong>Telefon:</strong> ${sirketBilgi.telefon}` : '';
+                    
+                    const linkEl = document.getElementById('modalEmpLink');
+                    if (sirketBilgi.link) {
+                        linkEl.innerHTML = `🔗 <strong>Bağlantı:</strong> <a href="${sirketBilgi.link}" target="_blank" style="color:var(--accent-color);">${sirketBilgi.link}</a>`;
+                    } else {
+                        linkEl.innerHTML = '';
+                    }
+                    employerInfoDiv.style.display = 'block';
+                } else {
+                    employerInfoDiv.style.display = 'none';
+                }
+            } else if (employerInfoDiv) {
+                employerInfoDiv.style.display = 'none';
+            }
             
             // Kullanıcı bu ilana daha önce başvurmuş mu? Onu kontrol ediyorum
             const basvurular = await API.getKullaniciBasvurulari(user.id);

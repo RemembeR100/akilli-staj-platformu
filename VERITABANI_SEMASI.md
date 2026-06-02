@@ -7,14 +7,14 @@ Aşağıda sistemdeki tablolar ve sütun bilgileri yer almaktadır.
 ## Tablolar
 
 ### 1. `kullanicilar` Tablosu
-Sisteme kayıt olan Stajyer, Kurumsal ve Admin hesaplarının profil bilgilerini tutar. (Auth ile ilişkilidir)
+Sisteme kayıt olan Stajyer ve Kurumsal hesaplarının profil bilgilerini tutar. (Auth ile ilişkilidir)
 
 | Sütun Adı | Veri Tipi | Özellikler | Açıklama |
 | :--- | :--- | :--- | :--- |
 | `id` | UUID | PRIMARY KEY | Supabase Auth `users` tablosundaki id ile eşleşir (`auth.users(id) ON DELETE CASCADE`) |
 | `ad` | TEXT | NOT NULL | Kullanıcı veya şirket adı |
 | `email` | TEXT | UNIQUE, NOT NULL | Giriş yapmak için kullanılan benzersiz e-posta adresi |
-| `rol` | TEXT | DEFAULT 'stajyer' | `stajyer`, `kurumsal` veya `admin` rolleri |
+| `rol` | TEXT | DEFAULT 'stajyer' | `stajyer` veya `kurumsal` rolleri |
 | `bio` | TEXT | NULL | Kullanıcının kendini anlattığı kısa metin (Stajyerler için) |
 | `yetenekler`| TEXT | NULL | Virgülle ayrılmış yetenek listesi (örn: "HTML, CSS, Python") |
 | `link` | TEXT | NULL | Kullanıcının portfolyo veya LinkedIn bağlantısı |

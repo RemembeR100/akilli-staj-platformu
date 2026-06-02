@@ -179,9 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (user) {
             let roleLinks = '';
             
-            if (user.rol === 'admin') {
-                roleLinks += `<li><a href="admin.html" style="color:#ef4444; font-weight:bold;">Admin Paneli</a></li>`;
-            } else if (user.rol === 'kurumsal') {
+            if (user.rol === 'kurumsal') {
                 roleLinks += `<li><a href="ilan_ekle.html" style="color:#10b981; font-weight:bold;">+ İlan Yayınla</a></li>`;
             }
 

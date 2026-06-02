@@ -155,12 +155,13 @@ const API = {
     },
 
     // Profil Güncelle
-    profilGuncelle: async (id, ad, bio, yetenekler, link, telefon) => {
+    profilGuncelle: async (id, ad, bio, yetenekler, link, telefon, profil_resmi) => {
         // XSS Koruması
         const guvenliAd = ad ? ad.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
         const guvenliBio = bio ? bio.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
         const guvenliLink = link ? link.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
         const guvenliTelefon = telefon ? telefon.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+        const guvenliProfilResmi = profil_resmi ? profil_resmi.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
 
         const { error } = await supabase
             .from('kullanicilar')
@@ -169,7 +170,8 @@ const API = {
                 bio: guvenliBio,
                 yetenekler: yetenekler,
                 link: guvenliLink,
-                telefon: guvenliTelefon
+                telefon: guvenliTelefon,
+                profil_resmi: guvenliProfilResmi
             })
             .eq('id', id);
 
@@ -274,7 +276,7 @@ const API = {
         return data || [];
     },
 
-    // Kişiselleştirilmiş eşleştirme algoritması
+    // Kişiselleştirilmiş eşleştirme algoritması (Sadece Yetenekler)
     getEslesmeSkorlu: async (userId) => {
         // Kullanıcı bilgilerini çek
         const { data: user } = await supabase
@@ -285,23 +287,11 @@ const API = {
 
         if (!user) return [];
 
-        // Kullanıcı keyword listesi: yetenekler + bio
+        // Kullanıcı keyword listesi: SADECE yetenekler
         const userKeywords = [];
         if (user.yetenekler) {
             user.yetenekler.split(',').map(y => y.trim().toLowerCase()).filter(Boolean).forEach(y => userKeywords.push(y));
         }
-        if (user.bio) {
-            const stopwords = ['ve', 'bir', 'bu', 'ile', 'da', 'de', 'için', 'olan', 'olan', 'benim', 'ama', 'daha', 'gibi', 'olarak'];
-            user.bio.toLowerCase().split(/[\s,;.!?]+/).filter(w => w.length >= 4 && !stopwords.includes(w)).forEach(w => userKeywords.push(w));
-        }
-
-        // Kategori -> anahtar kelime haritası
-        const catMap = {
-            'Yazılım': ['javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'node', 'nodejs', 'react', 'vue', 'angular', 'backend', 'fullstack', 'api', 'rest', 'graphql', 'git', 'docker', 'kubernetes', 'linux', 'ruby', 'golang', 'rust', 'spring', 'django', 'flask', 'express', 'next', 'php', 'laravel', 'microservice', 'aws', 'devops', 'yazılım', 'kod', 'programlama', 'geliştirme'],
-            'Web': ['web', 'html', 'css', 'react', 'vue', 'angular', 'frontend', 'tasarım', 'figma', 'ui', 'ux', 'wordpress', 'bootstrap', 'tailwind', 'sass', 'scss', 'webflow', 'next', 'nuxt', 'jquery', 'responsive', 'animasyon', 'svg', 'canva', 'sketch', 'adobexd', 'kullanıcı deneyimi', 'arayüz'],
-            'Veri': ['python', 'pandas', 'numpy', 'sql', 'nosql', 'mysql', 'postgresql', 'mongodb', 'excel', 'tableau', 'powerbi', 'veri', 'data', 'analiz', 'analitik', 'istatistik', 'makine öğrenmesi', 'ml', 'tensorflow', 'pytorch', 'scikit', 'spark', 'hadoop', 'etl', 'pipeline', 'rapor', 'görselleştirme', 'keras', 'r dili'],
-            'Pazarlama': ['pazarlama', 'marketing', 'seo', 'sem', 'sosyal medya', 'instagram', 'tiktok', 'google ads', 'meta ads', 'facebook', 'reklam', 'kampanya', 'dijital', 'içerik', 'content', 'copywriting', 'email', 'influencer', 'marka', 'marka yönetimi', 'analitik', 'crm', 'hubspot']
-        };
 
         // Tüm ilanları çek
         const { data: ilanlar } = await supabase
@@ -312,27 +302,21 @@ const API = {
 
         if (!ilanlar || ilanlar.length === 0) return [];
 
-        // Profil boşsa uyarı veren ilanları döndür
+        // Yetenek boşsa 15 dön
         if (userKeywords.length === 0) {
-            return ilanlar.slice(0, 6).map(i => ({ ...i, eslesme: 15, eslesme_label: 'Profilini Doldur' }));
+            return ilanlar.slice(0, 6).map(i => ({ ...i, eslesme: 15, eslesme_label: 'Yetenek Ekle' }));
         }
 
         const skorluIlanlar = ilanlar.map(ilan => {
             const ilanText = [ilan.pozisyon, ilan.detay, ilan.kategori, ilan.sirket_adi].join(' ').toLowerCase();
-            const catKeys = catMap[ilan.kategori] || [];
 
-            // FAKTÖR 1 - Metin Eşleşmesi (max 65 puan)
+            // Metin eşleşmesi
             const matchedInText = userKeywords.filter(uk => uk.length >= 2 && ilanText.includes(uk));
-            const textScore = Math.min(65, matchedInText.length * 25);
-
-            // FAKTÖR 2 - Kategori Uyumu (max 35 puan)
-            const catMatchedSkills = userKeywords.filter(uk =>
-                catKeys.some(kw => kw === uk || kw.includes(uk) || uk.includes(kw))
-            ).length;
-            const catScore = Math.min(35, catMatchedSkills * 18);
-
-            // Toplam puan ve etiket
-            const eslesme = Math.min(99, Math.max(12, textScore + catScore));
+            
+            // Puanlama (Her eşleşen yetenek için 25 puan)
+            let eslesme;
+            if (matchedInText.length === 0) eslesme = 15;
+            else eslesme = Math.min(99, 15 + (matchedInText.length * 25));
 
             let eslesme_label;
             if (eslesme >= 75) eslesme_label = 'En İyi Eşleşme';
@@ -344,6 +328,18 @@ const API = {
         });
 
         return skorluIlanlar.sort((a, b) => b.eslesme - a.eslesme).slice(0, 6);
+    },
+
+    getSirketBilgileri: async (sirketAdi) => {
+        const { data, error } = await supabase
+            .from('kullanicilar')
+            .select('ad, email, telefon, link, profil_resmi')
+            .eq('ad', sirketAdi)
+            .eq('rol', 'kurumsal')
+            .single();
+
+        if (error) return null;
+        return data;
     },
 
     // İŞVEREN METOTLARI
@@ -371,23 +367,6 @@ const API = {
             .eq('id', basvuruId);
 
         if (error) throw new Error('Başvuru durumu güncellenirken hata: ' + error.message);
-    },
-
-    // ADMİN METOTLARI
-    ilanSil: async (id) => {
-        // Önce ilana yapılmış başvuruları sil
-        await supabase
-            .from('basvurular')
-            .delete()
-            .eq('job_id', id);
-
-        // İlanı sil
-        const { error } = await supabase
-            .from('ilanlar')
-            .delete()
-            .eq('id', id);
-
-        if (error) throw new Error('İlan silinirken hata: ' + error.message);
     }
 };
 

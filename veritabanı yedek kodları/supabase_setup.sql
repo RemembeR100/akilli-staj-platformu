@@ -13,11 +13,12 @@ CREATE TABLE IF NOT EXISTS kullanicilar (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     ad TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    rol TEXT NOT NULL DEFAULT 'stajyer' CHECK (rol IN ('stajyer', 'kurumsal', 'admin')),
+    rol TEXT NOT NULL DEFAULT 'stajyer' CHECK (rol IN ('stajyer', 'kurumsal')),
     bio TEXT,
     yetenekler TEXT,
     link TEXT,
     telefon TEXT,
+    profil_resmi TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -90,7 +91,7 @@ CREATE POLICY "Giris yapmis kullanicilar ilan ekleyebilir"
     ON ilanlar FOR INSERT
     WITH CHECK (auth.uid() IS NOT NULL);
 
--- Giriş yapmış kullanıcılar ilan silebilir (admin kontrolü uygulama katmanında)
+-- Giriş yapmış kullanıcılar ilan silebilir (yetki kontrolü uygulama katmanında)
 CREATE POLICY "Giris yapmis kullanicilar ilan silebilir"
     ON ilanlar FOR DELETE
     USING (auth.uid() IS NOT NULL);

@@ -351,6 +351,7 @@
             <div class="hero-info">
                 <h1 id="profAd">Yükleniyor...</h1>
                 <p class="email" id="profEmail">—</p>
+                <p class="phone" id="profPhone" style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:8px;"></p>
                 <span class="role-badge" id="profRol">—</span>
                 <p class="bio-display" id="profBioDisplay" style="display:none;"></p>
                 <div class="skills-display" id="profSkillsDisplay"></div>
@@ -374,6 +375,10 @@
                     <div class="input-group">
                         <label for="editTelefon">Telefon Numarası <span style="color:#ef4444">*</span></label>
                         <input type="tel" id="editTelefon" placeholder="0555 555 55 55">
+                    </div>
+                    <div class="input-group full">
+                        <label for="editProfilResmi">Profil Resmi URL (İsteğe Bağlı)</label>
+                        <input type="url" id="editProfilResmi" placeholder="https://resim-linki.com/avatar.jpg">
                     </div>
                     <div class="input-group full">
                         <label for="editLink">Portfolio / LinkedIn / Web Sitesi</label>
@@ -408,7 +413,7 @@
             <div class="section-card">
                 <div class="sec-header">
                     <h2>✨ Sana Uygun Staj Önerileri</h2>
-                    <span class="ai-badge">🤖 AI Eşleştirme</span>
+                    <span class="ai-badge">🧠 Akıllı Eşleştirme</span>
                 </div>
                 <div id="noSkillsTip" class="no-skills-tip" style="display:none;">
                     Profilini doldurursan daha iyi eşleşmeler görebilirsin! &nbsp;<button class="btn-details"
@@ -435,14 +440,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- ADMİN -->
-        <div id="adminView" style="display:none;">
-            <div class="section-card">
-                <p style="color:#10b981;">Admin kullanıcısı olarak <a href="admin.html" style="color:#6366f1;">Admin
-                        Paneli</a>'ne gidebilirsiniz.</p>
-            </div>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -461,11 +458,17 @@
 
         /* ---- Hero Güncelle ---- */
         function updateHero(user) {
-            document.getElementById('avatarCircle').textContent = initials(user.ad);
+            if (user.profil_resmi) {
+                document.getElementById('avatarCircle').innerHTML = `<img src="${user.profil_resmi}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+            } else {
+                document.getElementById('avatarCircle').innerHTML = initials(user.ad);
+            }
+            
             document.getElementById('profAd').textContent = user.ad || 'İsimsiz';
             document.getElementById('profEmail').textContent = user.email || '';
+            document.getElementById('profPhone').textContent = user.telefon ? `📱 ${user.telefon}` : '';
             document.getElementById('profRol').textContent =
-                ({ stajyer: 'Stajyer', kurumsal: 'Kurumsal', admin: 'Admin' }[user.rol] || user.rol);
+                ({ stajyer: 'Stajyer', kurumsal: 'Kurumsal' }[user.rol] || user.rol);
 
             const bioEl = document.getElementById('profBioDisplay');
             if (user.bio) { bioEl.textContent = user.bio; bioEl.style.display = 'block'; }
@@ -528,9 +531,10 @@
             panel.style.display = open ? 'none' : 'block';
             if (!open && currentUser) {
                 document.getElementById('editAd').value = currentUser.ad || '';
-                document.getElementById('editTelefon').value = currentUser.telefon || '';
-                document.getElementById('editBio').value = currentUser.bio || '';
-                document.getElementById('editLink').value = currentUser.link || '';
+            document.getElementById('editTelefon').value = currentUser.telefon || '';
+            document.getElementById('editProfilResmi').value = currentUser.profil_resmi || '';
+            document.getElementById('editBio').value = currentUser.bio || '';
+            document.getElementById('editLink').value = currentUser.link || '';
                 currentSkills = currentUser.yetenekler ? currentUser.yetenekler.split(',').map(s => s.trim()).filter(Boolean) : [];
                 renderTags();
                 
@@ -558,6 +562,7 @@
 
             const ad = editAdInput.value.trim();
             const telefon = editTelefonInput.value.trim();
+            const profil_resmi = document.getElementById('editProfilResmi').value.trim();
             const bio = editBioInput.value.trim();
             const link = editLinkInput.value.trim();
             const yetenekler = currentSkills.join(', ');
@@ -593,7 +598,7 @@
             const btn = document.getElementById('btnKaydet');
             btn.textContent = 'Kaydediliyor...'; btn.disabled = true;
             try {
-                await API.profilGuncelle(currentUser.id, ad, bio, yetenekler, link, telefon);
+                await API.profilGuncelle(currentUser.id, ad, bio, yetenekler, link, telefon, profil_resmi);
                 // Güncel kullanıcıyı yeniden çek
                 currentUser = await API.getCurrentUser();
                 updateHero(currentUser);
@@ -804,8 +809,6 @@
             if (currentUser.rol === 'kurumsal') {
                 document.getElementById('kurumsalView').style.display = 'block';
                 loadKurumsalIlanlar(currentUser.ad);
-            } else if (currentUser.rol === 'admin') {
-                document.getElementById('adminView').style.display = 'block';
             } else {
                 document.getElementById('stajyerView').style.display = 'block';
                 loadOnerilenStajlar();

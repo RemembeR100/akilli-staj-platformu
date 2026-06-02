@@ -33,7 +33,4 @@ Projede Node.js, PHP veya Python gibi bir backend sunucusu kullanılmamıştır.
 
 ## 👨‍💻 Test Kullanıcıları
 
-Veritabanı sıfırdan oluşturulduğunda aşağıdaki yetkili hesap otomatik olarak eklenir:
-- **Admin:** E-posta: `admin` | Şifre: `admin`
-
-Yeni öğrenci veya şirket hesaplarını kayıt sayfasından anında oluşturabilirsiniz.
+Yeni öğrenci (Stajyer) veya şirket (Kurumsal) hesaplarını "Kayıt Ol" sayfasından anında oluşturabilirsiniz.
