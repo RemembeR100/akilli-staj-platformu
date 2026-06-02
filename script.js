@@ -61,19 +61,22 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (matchRate === undefined && user && user.rol === 'stajyer') {
                 const yetenekler = (user.yetenekler || '').toLowerCase();
-                const ilanIcerik = (ilan.pozisyon + ' ' + (ilan.detay || '') + ' ' + (ilan.kategori || '') + ' ' + (ilan.sirket_adi || '')).toLowerCase();
+                const jobSkills = ilan.aranan_yetenekler 
+                    ? ilan.aranan_yetenekler.toLowerCase().split(',').map(s => s.trim()).filter(Boolean) 
+                    : [];
 
                 // Yetenek boşsa → 15%
-                if (!yetenekler) {
+                if (!yetenekler || jobSkills.length === 0) {
                     matchRate = 15;
                 } else {
-                    const keywords = yetenekler.split(',').map(y => y.trim()).filter(y => y.length >= 2);
-                    // Metin eşleşmesi
-                    const matched = keywords.filter(k => ilanIcerik.includes(k)).length;
+                    const mySkills = yetenekler.split(',').map(y => y.trim()).filter(Boolean);
+                    const matched = jobSkills.filter(js => mySkills.includes(js)).length;
                     
-                    // Basit algoritma (her yetenek için +25, taban puan 15)
                     if (matched === 0) matchRate = 15;
-                    else matchRate = Math.min(99, 15 + (matched * 25));
+                    else {
+                        matchRate = Math.round(15 + (matched / jobSkills.length) * 84);
+                        if (matchRate > 99) matchRate = 99;
+                    }
                 }
             }
 

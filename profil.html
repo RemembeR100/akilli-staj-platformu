@@ -844,7 +844,7 @@
                                         <h4 style="color:var(--text-primary); margin-bottom:5px; font-size:1.05rem;">${k.ad}</h4>
                                         <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:3px;">📧 ${k.email}</p>
                                         <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:3px;">📱 ${k.telefon || 'Belirtilmedi'}</p>
-                                        ${k.link ? `<p style="margin-top:5px;"><a href="${k.link.startsWith('http') ? k.link : 'https://' + k.link}" target="_blank" style="color:var(--accent-color); font-size:0.85rem; text-decoration:none;">🔗 Portfolyo/Bağlantı</a></p>` : ''}
+                                        ${k.link ? `<p style="margin-top:5px;"><a href="${k.link.startsWith('http') ? k.link : 'https://' + k.link}" target="_blank" style="color:var(--accent-color); font-size:0.85rem; text-decoration:none;">🔗 ${k.link}</a></p>` : ''}
                                     </div>
                                     <div style="display:flex; gap:8px;">
                                         ${actions}

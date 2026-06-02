@@ -277,12 +277,13 @@ const API = {
     },
 
     // Sadece Kurumsal Hesaplar İçin: İlan Ekle
-    ilanEkle: async (sirket_adi, pozisyon, lokasyon, calisma_sekli, kategori, detay) => {
+    ilanEkle: async (sirket_adi, pozisyon, lokasyon, calisma_sekli, kategori, detay, aranan_yetenekler = '') => {
         const tarih = new Date().toLocaleDateString('tr-TR');
 
         // XSS Koruması
         const gPozisyon = pozisyon ? pozisyon.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
         const gDetay = detay ? detay.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+        const gArananYetenekler = aranan_yetenekler ? aranan_yetenekler.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
 
         const { error } = await supabase
             .from('ilanlar')
@@ -293,7 +294,8 @@ const API = {
                 calisma_sekli,
                 kategori,
                 tarih,
-                detay: gDetay
+                detay: gDetay,
+                aranan_yetenekler: gArananYetenekler
             });
 
         if (error) throw new Error('İlan eklenirken hata: ' + error.message);
@@ -362,15 +364,26 @@ const API = {
         }
 
         const skorluIlanlar = ilanlar.map(ilan => {
-            const ilanText = [ilan.pozisyon, ilan.detay, ilan.kategori, ilan.sirket_adi].join(' ').toLowerCase();
+            const jobSkills = ilan.aranan_yetenekler 
+                ? ilan.aranan_yetenekler.toLowerCase().split(',').map(s => s.trim()).filter(Boolean) 
+                : [];
 
-            // Metin eşleşmesi
-            const matchedInText = userKeywords.filter(uk => uk.length >= 2 && ilanText.includes(uk));
-            
-            // Puanlama (Her eşleşen yetenek için 25 puan)
-            let eslesme;
-            if (matchedInText.length === 0) eslesme = 15;
-            else eslesme = Math.min(99, 15 + (matchedInText.length * 25));
+            let matchedCount = 0;
+            if (jobSkills.length > 0) {
+                matchedCount = jobSkills.filter(js => userKeywords.includes(js)).length;
+            }
+
+            // Yeni Basit Eşleştirme Algoritması
+            let eslesme = 0;
+            if (jobSkills.length === 0) {
+                eslesme = 15; // Eski ilanlar veya yetenek girilmemiş ilanlar için standart 15
+            } else if (matchedCount === 0) {
+                eslesme = 15; // Ortak yetenek yoksa 15
+            } else {
+                // Eşleşen yetenek oranına göre 15 ile 99 arası skor
+                eslesme = Math.round(15 + (matchedCount / jobSkills.length) * 84);
+                if (eslesme > 99) eslesme = 99;
+            }
 
             let eslesme_label;
             if (eslesme >= 75) eslesme_label = 'En İyi Eşleşme';

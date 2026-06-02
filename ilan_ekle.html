@@ -64,6 +64,14 @@
                     </div>
                 </div>
                 <div class="input-group">
+                    <label>Aranan Yetenekler (Virgülle veya Enter ile ayırın)</label>
+                    <div class="skill-tags-box" id="jobSkillsBox" onclick="document.getElementById('jobSkillInput').focus()">
+                        <div id="jobSkillsContainer" style="display:flex; flex-wrap:wrap; gap:7px;"></div>
+                        <input type="text" id="jobSkillInput" class="stag-input" placeholder="Örn: SQL, React...">
+                    </div>
+                    <small style="color:var(--text-secondary); margin-top:5px; display:block;">Stajyerin bu ilana ne kadar uyduğunu hesaplamak için buraya yazdığınız yetenekler kullanılacaktır.</small>
+                </div>
+                <div class="input-group">
                     <label>Detaylar / İş Tanımı</label>
                     <textarea id="ilanDetay" rows="5" style="width: 100%; padding: 14px; border: none; border-radius: 8px; outline: none; background: #2b2d31; color: #fff; box-shadow: inset 4px 4px 8px #1d1e21, inset -4px -4px 8px #393c41; font-size: 1rem; resize: vertical;" required placeholder="Adaydan beklenen yetenekler ve iş tanımını detaylıca yazınız..."></textarea>
                 </div>
@@ -94,6 +102,44 @@
             const calInput = document.getElementById('ilanCalisma');
             const katInput = document.getElementById('ilanKategori');
             const detInput = document.getElementById('ilanDetay');
+            
+            // Skill logic
+            let jobSkills = [];
+            const jobSkillInput = document.getElementById('jobSkillInput');
+            const jobSkillsContainer = document.getElementById('jobSkillsContainer');
+
+            function renderJobTags() {
+                jobSkillsContainer.innerHTML = '';
+                jobSkills.forEach(s => {
+                    const d = document.createElement('div'); d.className = 'stag';
+                    d.innerHTML = `<span>${s}</span><span class="x" onclick="removeJobSkill('${s}')">×</span>`;
+                    jobSkillsContainer.appendChild(d);
+                });
+            }
+
+            window.removeJobSkill = function(val) {
+                jobSkills = jobSkills.filter(s => s !== val);
+                renderJobTags();
+            };
+
+            function addJobSkillTag(val) {
+                val = val.trim();
+                if (!val || jobSkills.includes(val)) return;
+                jobSkills.push(val);
+                renderJobTags();
+            }
+
+            jobSkillInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    addJobSkillTag(e.target.value);
+                    e.target.value = '';
+                }
+            });
+            jobSkillInput.addEventListener('blur', e => {
+                addJobSkillTag(e.target.value);
+                e.target.value = '';
+            });
 
             // Yazıldıkça hataları temizle
             pozInput.addEventListener('input', () => FormValidation.clearError(pozInput));
@@ -109,6 +155,7 @@
                 const cal = calInput.value;
                 const kat = katInput.value;
                 const det = detInput.value.trim();
+                const arananYetenekler = jobSkills.join(', ');
 
                 let hasError = false;
 
@@ -140,7 +187,7 @@
                     btn.textContent = 'Yayınlanıyor...';
                     btn.disabled = true;
                     
-                    await API.ilanEkle(user.ad, poz, lok, cal, kat, det);
+                    await API.ilanEkle(user.ad, poz, lok, cal, kat, det, arananYetenekler);
                     showToast('İlanınız başarıyla yayınlandı!', 'success', 2000);
                     form.reset();
                     setTimeout(() => {
