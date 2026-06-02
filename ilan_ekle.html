@@ -146,6 +146,39 @@
             lokInput.addEventListener('input', () => FormValidation.clearError(lokInput));
             detInput.addEventListener('input', () => FormValidation.clearError(detInput));
 
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('edit');
+            const pageTitle = document.querySelector('.page-title');
+            const pageDesc = document.querySelector('.profile-card p');
+            const submitBtn = form.querySelector('.btn-primary');
+
+            if (editId) {
+                pageTitle.textContent = 'İlanı Düzenle';
+                pageDesc.textContent = 'İlan detaylarınızı güncelleyebilirsiniz.';
+                submitBtn.textContent = 'Değişiklikleri Kaydet';
+
+                try {
+                    const ilan = await API.getIlanDetay(editId);
+                    if (ilan.sirket_adi !== user.ad) {
+                        showToast('Bu ilanı düzenleme yetkiniz yok.', 'error');
+                        setTimeout(() => window.location.href = 'index.html', 1500);
+                        return;
+                    }
+                    pozInput.value = ilan.pozisyon || '';
+                    lokInput.value = ilan.lokasyon || '';
+                    calInput.value = ilan.calisma_sekli || 'Ofis';
+                    katInput.value = ilan.kategori || 'Yazılım';
+                    detInput.value = ilan.detay || '';
+                    
+                    if (ilan.aranan_yetenekler) {
+                        jobSkills = ilan.aranan_yetenekler.split(',').map(s => s.trim()).filter(Boolean);
+                        renderJobTags();
+                    }
+                } catch (err) {
+                    showToast('İlan bilgileri alınamadı.', 'error');
+                }
+            }
+
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 FormValidation.clearFormErrors(form);
@@ -183,21 +216,24 @@
                 if (hasError) return;
 
                 try {
-                    const btn = form.querySelector('.btn-primary');
-                    btn.textContent = 'Yayınlanıyor...';
-                    btn.disabled = true;
+                    submitBtn.textContent = editId ? 'Güncelleniyor...' : 'Yayınlanıyor...';
+                    submitBtn.disabled = true;
                     
-                    await API.ilanEkle(user.ad, poz, lok, cal, kat, det, arananYetenekler);
-                    showToast('İlanınız başarıyla yayınlandı!', 'success', 2000);
-                    form.reset();
+                    if (editId) {
+                        await API.ilanGuncelle(editId, poz, lok, cal, kat, det, arananYetenekler);
+                        showToast('İlanınız başarıyla güncellendi!', 'success', 2000);
+                    } else {
+                        await API.ilanEkle(user.ad, poz, lok, cal, kat, det, arananYetenekler);
+                        showToast('İlanınız başarıyla yayınlandı!', 'success', 2000);
+                    }
+                    
                     setTimeout(() => {
-                        window.location.href = 'index.html'; // Anasayfaya dön
+                        window.location.href = 'profil.html'; // Profildeki İlanlarım sekmesine dön
                     }, 1200);
                 } catch (err) {
                     showToast('Hata: ' + err.message, 'error');
-                    const btn = form.querySelector('.btn-primary');
-                    btn.textContent = 'İlanı Yayınla';
-                    btn.disabled = false;
+                    submitBtn.textContent = editId ? 'Değişiklikleri Kaydet' : 'İlanı Yayınla';
+                    submitBtn.disabled = false;
                 }
             });
         });

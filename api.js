@@ -301,6 +301,26 @@ const API = {
         if (error) throw new Error('İlan eklenirken hata: ' + error.message);
     },
 
+    ilanGuncelle: async (id, pozisyon, lokasyon, calisma_sekli, kategori, detay, aranan_yetenekler = '') => {
+        const gPozisyon = pozisyon ? pozisyon.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+        const gDetay = detay ? detay.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+        const gArananYetenekler = aranan_yetenekler ? aranan_yetenekler.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+
+        const { error } = await supabase
+            .from('ilanlar')
+            .update({
+                pozisyon: gPozisyon,
+                lokasyon,
+                calisma_sekli,
+                kategori,
+                detay: gDetay,
+                aranan_yetenekler: gArananYetenekler
+            })
+            .eq('id', id);
+
+        if (error) throw new Error('İlan güncellenirken hata: ' + error.message);
+    },
+
     // Kurumsal hesabın kendi açtığı ilanları getir
     getKurumsalIlanlari: async (sirket_adi, limit = 50) => {
         const { data, error } = await supabase
@@ -418,7 +438,7 @@ const API = {
                 durum,
                 tarih,
                 user_id,
-                kullanicilar ( ad, email, telefon, yetenekler, link )
+                kullanicilar ( ad, email, telefon, yetenekler, link, profil_resmi )
             `)
             .eq('job_id', ilanId)
             .order('id', { ascending: false });

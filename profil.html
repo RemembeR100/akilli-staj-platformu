@@ -792,7 +792,10 @@
                             <p>${i.lokasyon} (${i.calisma_sekli})</p>
                             <span class="job-date" style="color:#10b981;">Yayın: ${i.tarih}</span>
                         </div>
-                        <button class="btn-details" onclick="toggleBasvurular(${i.id}, this)">Başvuruları Gör</button>
+                        <div style="display:flex; gap:10px;">
+                            <a href="ilan_ekle.html?edit=${i.id}" class="btn-details" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">İlanı Düzenle</a>
+                            <button class="btn-details" onclick="toggleBasvurular(${i.id}, this)">Başvuruları Gör</button>
+                        </div>
                     </div>
                     <div id="basvurular-${i.id}" style="display:none; width:100%; margin-top:20px; border-top:1px solid var(--border-color); padding-top:15px;">
                         <p style="color:#9ca3af;">Yükleniyor...</p>

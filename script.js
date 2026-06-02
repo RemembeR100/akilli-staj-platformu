@@ -39,6 +39,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    window.getDefaultSkills = function(kategori, pozisyon) {
+        const text = ((kategori || '') + ' ' + (pozisyon || '')).toLowerCase();
+        let skills = [];
+        if (text.includes('veri')) skills.push('SQL', 'Python', 'Excel');
+        if (text.includes('yazılım') || text.includes('backend') || text.includes('fullstack')) skills.push('Java', 'C#', 'SQL', 'Git');
+        if (text.includes('web') || text.includes('frontend')) skills.push('HTML', 'CSS', 'JavaScript', 'React');
+        if (text.includes('siber') || text.includes('sızma')) skills.push('Linux', 'Network', 'Siber Güvenlik');
+        if (text.includes('pazarlama') || text.includes('seo')) skills.push('SEO', 'Google Analytics', 'Sosyal Medya');
+        if (text.includes('tasarım') || text.includes('ui') || text.includes('ux')) skills.push('Figma', 'Photoshop', 'UI/UX');
+        
+        if (skills.length === 0) skills.push('İletişim', 'Takım Çalışması', 'Analitik Düşünme');
+        return skills.join(', ');
+    };
+
     // İlan HTML'ini oluştur
     // Hoca Sorarsa: Veritabanından gelen her ilan objesini alıp ekranda bir div kartı (job-card)
     // içerisine yerleştiriyoruz (DOM Manipülasyonu).
@@ -54,6 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ilanlar.forEach(ilan => {
             const card = document.createElement('div');
             card.className = 'job-card';
+
+            // Eski ilanlarda aranan_yetenekler yoksa otomatik türet (Geriye dönük uyumluluk)
+            if (!ilan.aranan_yetenekler) {
+                ilan.aranan_yetenekler = window.getDefaultSkills(ilan.kategori, ilan.pozisyon);
+            }
 
             // Eşleşme Oranı Hesaplama/Simülasyonu (SCRUM-25)
             // Backend'den matchRate gelirse onu kullanır, gelmezse kullanıcı yeteneklerine göre simüle eder
@@ -96,14 +115,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<img src="${ilan.profil_resmi}" style="width:45px;height:45px;border-radius:50%;object-fit:cover;border:2px solid var(--border-color);flex-shrink:0;">`
                 : `<div style="width:45px;height:45px;border-radius:50%;background:linear-gradient(135deg, var(--accent-color), #8b5cf6);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.2rem;flex-shrink:0;">${ilan.sirket_adi.charAt(0).toUpperCase()}</div>`;
 
+            const jobSkillsHtml = ilan.aranan_yetenekler ? 
+                `<div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;">
+                    ${ilan.aranan_yetenekler.split(',').map(y => `<span style="background:rgba(99,102,241,0.1); color:var(--accent-color); padding:2px 8px; border-radius:12px; font-size:0.75rem;">${y.trim()}</span>`).join('')}
+                </div>` : '';
+
             card.innerHTML = `
                 <div style="display:flex; gap:15px; align-items:flex-start; width:100%;">
                     ${avatarHtml}
                     <div class="job-info" style="flex:1;">
                         <h3>${ilan.pozisyon}</h3>
                         <p>${ilan.sirket_adi} • ${ilan.lokasyon} (${ilan.calisma_sekli})</p>
+                        ${jobSkillsHtml}
                         ${matchHtml}
-                        <span class="job-date">Yayınlanma: ${ilan.tarih}</span>
+                        <span class="job-date" style="margin-top:8px;">Yayınlanma: ${ilan.tarih}</span>
                     </div>
                 </div>
                 <button class="btn-details" style="margin-top:15px;" onclick="openDetay(${ilan.id})">Detayları Gör</button>
@@ -128,9 +153,24 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // İlanın detay bilgilerini DB'den çekiyoruz
             const ilan = await API.getIlanDetay(id);
+            
+            // Eski ilanlarda aranan_yetenekler yoksa otomatik türet
+            if (!ilan.aranan_yetenekler && window.getDefaultSkills) {
+                ilan.aranan_yetenekler = window.getDefaultSkills(ilan.kategori, ilan.pozisyon);
+            }
+
             modalTitle.textContent = ilan.pozisyon;
             modalCompany.textContent = `${ilan.sirket_adi} • ${ilan.lokasyon} (${ilan.calisma_sekli})`;
-            modalDetail.textContent = ilan.detay;
+            
+            const skillsHtml = ilan.aranan_yetenekler ? 
+                `<div style="margin-bottom:15px; padding-bottom:15px; border-bottom:1px solid var(--border-color);">
+                    <h4 style="color:var(--text-primary); margin-bottom:8px; font-size:1rem;">Aranan Yetenekler</h4>
+                    <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                        ${ilan.aranan_yetenekler.split(',').map(y => `<span style="background:rgba(99,102,241,0.1); color:var(--accent-color); padding:4px 10px; border-radius:12px; font-size:0.85rem;">${y.trim()}</span>`).join('')}
+                    </div>
+                </div>` : '';
+                
+            modalDetail.innerHTML = skillsHtml + `<div style="line-height:1.6; white-space:pre-wrap;">${ilan.detay}</div>`;
             currentJobId = id; // Hangi ilana başvuru yapılacağını bilmek için id'yi global değişkende tutuyorum
             
             // Şirket İletişim Bilgilerini Getir
