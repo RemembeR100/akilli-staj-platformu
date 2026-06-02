@@ -60,19 +60,26 @@ document.addEventListener('DOMContentLoaded', () => {
             let matchRate = ilan.matchRate;
             
             if (matchRate === undefined && user && user.rol === 'stajyer') {
-                // Basit bir simülasyon: Pozisyon veya detayda kullanıcının yeteneklerinden biri geçiyorsa yüksek ver
                 const yetenekler = (user.yetenekler || '').toLowerCase();
-                const ilanIcerik = (ilan.pozisyon + ' ' + ilan.detay).toLowerCase();
-                
-                if (yetenekler && ilanIcerik) {
-                    const matchCount = yetenekler.split(',').filter(y => ilanIcerik.includes(y.trim())).length;
-                    if (matchCount > 0) {
-                        matchRate = Math.min(70 + (matchCount * 10), 98);
-                    } else {
-                        matchRate = Math.floor(Math.random() * 20) + 40; // %40-60 arası rastgele
-                    }
+                const bio = (user.bio || '').toLowerCase();
+                const ilanIcerik = (ilan.pozisyon + ' ' + (ilan.detay || '') + ' ' + (ilan.kategori || '') + ' ' + (ilan.sirket_adi || '')).toLowerCase();
+
+                // Profil tamamen boşsa → 15% (profil.html ile aynı sonuç)
+                if (!yetenekler && !bio) {
+                    matchRate = 15;
                 } else {
-                    matchRate = Math.floor(Math.random() * 30) + 50; // %50-80 arası rastgele
+                    // Kullanıcının anahtar kelimelerini çıkar
+                    const keywords = [];
+                    if (yetenekler) yetenekler.split(',').map(y => y.trim()).filter(y => y.length >= 2).forEach(y => keywords.push(y));
+                    if (bio) {
+                        const stopwords = ['ve', 'bir', 'bu', 'ile', 'da', 'de', 'için', 'olan', 'benim', 'ama', 'daha', 'gibi', 'olarak'];
+                        bio.split(/[\s,;.!?]+/).filter(w => w.length >= 4 && !stopwords.includes(w)).forEach(w => keywords.push(w));
+                    }
+                    // Metin eşleşmesi (max 65 puan)
+                    const matched = keywords.filter(k => ilanIcerik.includes(k)).length;
+                    const textScore = Math.min(65, matched * 25);
+                    // Toplam skor
+                    matchRate = Math.min(95, Math.max(12, textScore + 12));
                 }
             }
 

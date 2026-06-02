@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS kullanicilar (
     bio TEXT,
     yetenekler TEXT,
     link TEXT,
+    telefon TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -102,6 +103,18 @@ CREATE POLICY "Kullanici kendi basvurularini gorebilir"
     ON basvurular FOR SELECT
     USING (auth.uid() = user_id);
 
+-- Kurumsal: Kendi ilanlarına yapılan başvuruları görebilir
+CREATE POLICY "Kurumsal ilan basvurularini gorebilir"
+    ON basvurular FOR SELECT
+    USING (
+        job_id IN (
+            SELECT id FROM ilanlar
+            WHERE sirket_adi = (
+                SELECT ad FROM kullanicilar WHERE id = auth.uid()
+            )
+        )
+    );
+
 -- Kullanıcı başvuru yapabilir
 CREATE POLICY "Kullanici basvuru yapabilir"
     ON basvurular FOR INSERT
@@ -111,6 +124,19 @@ CREATE POLICY "Kullanici basvuru yapabilir"
 CREATE POLICY "Kullanici kendi basvurusunu silebilir"
     ON basvurular FOR DELETE
     USING (auth.uid() = user_id);
+
+-- Kurumsal: Kendi ilanlarına yapılan başvuruların durumunu güncelleyebilir (Onay/Red)
+CREATE POLICY "Kurumsal basvuru durumunu guncelleyebilir"
+    ON basvurular FOR UPDATE
+    USING (
+        job_id IN (
+            SELECT id FROM ilanlar
+            WHERE sirket_adi = (
+                SELECT ad FROM kullanicilar WHERE id = auth.uid()
+            )
+        )
+    )
+    WITH CHECK (true);
 
 -- ============================================================
 -- 4) TRIGGER: Auth kaydında otomatik profil oluşturma
