@@ -66,9 +66,10 @@ const API = {
     },
 
     // Kullanıcı Kaydı (Supabase Auth + kullanicilar tablosu)
-    register: async (ad, email, sifre, rol) => {
+    register: async (ad, email, sifre, rol, telefon = '') => {
         // Basit XSS Koruması
         const guvenliAd = ad.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const guvenliTelefon = telefon ? telefon.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
 
         // Supabase Auth ile kayıt
         const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -89,12 +90,21 @@ const API = {
             throw new Error('Kayıt hatası: ' + authError.message);
         }
 
+        // Telefon numarasını kullanicilar tablosuna kaydet (tetikleyici tabloyu oluşturmuşsa)
+        if (guvenliTelefon && authData.user) {
+            await supabase
+                .from('kullanicilar')
+                .update({ telefon: guvenliTelefon })
+                .eq('id', authData.user.id);
+        }
+
         // Kullanıcı bilgilerini döndür
         const user = {
             id: authData.user.id,
             ad: guvenliAd,
             email: email,
-            rol: rol
+            rol: rol,
+            telefon: guvenliTelefon
         };
 
         return user;

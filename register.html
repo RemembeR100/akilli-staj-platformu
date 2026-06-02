@@ -33,6 +33,10 @@
                         <label>Okul Numarası</label>
                         <input type="text" id="regOkulNo" placeholder="202401010" required>
                     </div>
+                    <div class="input-group">
+                        <label>Telefon Numarası <span style="color:#ef4444">*</span></label>
+                        <input type="tel" id="regTelefon" placeholder="0555 555 55 55" required>
+                    </div>
                 </div>
 
                 <div class="input-group">
@@ -89,6 +93,10 @@
                         <label>Okul Numarası</label>
                         <input type="text" id="regOkulNo" placeholder="202401010" required>
                     </div>
+                    <div class="input-group">
+                        <label>Telefon Numarası <span style="color:#ef4444">*</span></label>
+                        <input type="tel" id="regTelefon" placeholder="0555 555 55 55" required>
+                    </div>
                 `;
             }
         }
@@ -119,9 +127,11 @@
             const inputs = dynamicFields.getElementsByTagName('input');
             const firstInput = inputs[0];
             const secondInput = inputs[1];
+            const thirdInput = inputs[2]; // Sadece stajyer için telefon
 
             const firstVal = firstInput ? firstInput.value.trim() : '';
             const secondVal = secondInput ? secondInput.value.trim() : '';
+            const telefonVal = (!isKurumsal && thirdInput) ? thirdInput.value.trim() : '';
             const email = emailInput.value.trim();
             const sifre = passwordInput.value;
             const rol = isKurumsal ? 'kurumsal' : 'stajyer';
@@ -149,7 +159,18 @@
                 hasError = true;
             }
 
-            // 3. E-posta Format Doğrulaması
+            // 3. Telefon Doğrulaması (sadece stajyer)
+            if (!isKurumsal) {
+                if (!telefonVal) {
+                    FormValidation.showError(thirdInput, "Telefon numarası zorunludur.");
+                    hasError = true;
+                } else if (telefonVal.replace(/\s/g, '').length < 10) {
+                    FormValidation.showError(thirdInput, "Lütfen geçerli bir telefon numarası giriniz (en az 10 rakam).");
+                    hasError = true;
+                }
+            }
+
+            // 4. E-posta Format Doğrulaması
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!email) {
                 FormValidation.showError(emailInput, "E-posta alanı boş bırakılamaz.");
@@ -159,7 +180,7 @@
                 hasError = true;
             }
 
-            // 4. Şifre Karakter Sayısı Doğrulaması (Min 6 Karakter)
+            // 5. Şifre Karakter Sayısı Doğrulaması (Min 6 Karakter)
             if (!sifre) {
                 FormValidation.showError(passwordInput, "Şifre alanı boş bırakılamaz.");
                 hasError = true;
@@ -175,7 +196,7 @@
                 btn.textContent = 'Kayıt Yapılıyor...';
                 btn.disabled = true;
 
-                await API.register(firstVal, email, sifre, rol);
+                await API.register(firstVal, email, sifre, rol, telefonVal);
                 showToast('Kayıt başarıyla tamamlandı! Giriş yapılıyor...', 'success', 2000);
                 setTimeout(() => {
                     window.location.href = 'index.html';
