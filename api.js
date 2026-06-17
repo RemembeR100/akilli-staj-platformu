@@ -1,14 +1,5 @@
-/**
- * api.js - Supabase Veritabanı ve Uygulama Servis Katmanı
- *
- * Bu dosya Supabase (PostgreSQL) kullanarak bulut tabanlı bir veritabanı
- * üzerinde CRUD işlemleri gerçekleştirir. Kimlik doğrulama Supabase Auth
- * ile yapılır (bcrypt + JWT).
- *
- * Modüller:
- *   - API nesnesi : Tüm CRUD ve iş mantığı metodları
- *   - Supabase Auth : Kayıt, giriş, çıkış ve oturum yönetimi
- */
+// api işlemleri burda yapılıyor. veritabanı olarak supabase kullandık.
+// crud işlemleri ve auth falan burada
 
 // Veritabanı hazır sözü (uyumluluk için)
 let dbReadyPromise = null;
@@ -22,7 +13,7 @@ const API = {
         return true;
     },
 
-    // İlanları filtrelerle getir - arama metni, kategori, çalışma şekli ve lokasyona göre
+    // anasayfadaki ilanları falan çekmek için filtreleme de var
     getIlanlar: async (filters = {}) => {
         let query = supabase.from('ilanlar').select('*');
 
@@ -84,7 +75,7 @@ const API = {
         return data;
     },
 
-    // Kullanıcı Kaydı (Supabase Auth + kullanicilar tablosu)
+    // sisteme kayıt olma yeri
     register: async (ad, email, sifre, rol, telefon = '') => {
         // Basit XSS Koruması
         const guvenliAd = ad.replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -129,7 +120,7 @@ const API = {
         return user;
     },
 
-    // Giriş Yap (Supabase Auth)
+    // normal giriş yapma
     login: async (email, sifre) => {
         const { data, error } = await supabase.auth.signInWithPassword({
             email: email,
@@ -173,7 +164,7 @@ const API = {
         return profil || null;
     },
 
-    // Profil Güncelle
+    // profili güncellemek için metod
     profilGuncelle: async (id, ad, bio, yetenekler, link, telefon, profil_resmi) => {
         // XSS Koruması
         const guvenliAd = ad ? ad.replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
@@ -334,7 +325,7 @@ const API = {
         return data || [];
     },
 
-    // Kişiselleştirilmiş eşleştirme algoritması (Sadece Yetenekler)
+    // yeteneklere göre kimin ne kadar uygun olduğunu hesaplayan algoritma kısmı
     getEslesmeSkorlu: async (userId) => {
         // Kullanıcı bilgilerini çek
         const { data: user } = await supabase
@@ -393,7 +384,7 @@ const API = {
                 matchedCount = jobSkills.filter(js => userKeywords.includes(js)).length;
             }
 
-            // Yeni Basit Eşleştirme Algoritması
+            // Akıllı Eşleştirme Algoritması
             let eslesme = 0;
             if (jobSkills.length === 0) {
                 eslesme = 15; // Eski ilanlar veya yetenek girilmemiş ilanlar için standart 15

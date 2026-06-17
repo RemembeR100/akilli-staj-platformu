@@ -364,7 +364,7 @@
             <button class="btn-edit" onclick="toggleEdit()">✏️ Profili Düzenle</button>
         </div>
 
-        <!-- Düzenleme Paneli (SCRUM-43) -->
+        <!-- Düzenleme Paneli -->
         <div class="edit-panel" id="editPanel">
             <h2>🛠️ Profil Bilgilerini Düzenle</h2>
             <form id="profilGuncelleForm">
@@ -415,7 +415,7 @@
 
         <!-- STAJYER -->
         <div id="stajyerView" style="display:none;">
-            <!-- Eşleşme Önerileri (SCRUM-39) -->
+            <!-- Eşleşme Önerileri -->
             <div class="section-card">
                 <div class="sec-header">
                     <h2>✨ Sana Uygun Staj Önerileri</h2>
@@ -677,7 +677,7 @@
             }
         });
 
-        /* ---- Önerilen Stajlar (SCRUM-39) ---- */
+        /* ---- Önerilen Stajlar ---- */
         async function loadOnerilenStajlar() {
             const list = document.getElementById('recommendationsList');
             list.innerHTML = '<p style="color:var(--text-secondary);">Yükleniyor...</p>';
@@ -715,7 +715,7 @@
             });
         }
 
-        /* ---- Başvurular (SCRUM-50) ---- */
+        /* ---- Başvurular ---- */
         async function loadBasvurular(userId) {
             const list = document.getElementById('appliedJobsList');
             const basvurular = await API.getKullaniciBasvurulari(userId);

@@ -11,14 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let currentJobId = null;
 
-    // İlanları Yükle ve Ekrana Bas (Burada filtreleme falan da var)
-    // Hoca Sorarsa: Bu fonksiyon asenkron (async) çalışır çünkü veritabanından verilerin
-    // gelmesi zaman alabilir. 'await API.getIlanlar' ile verilerin gelmesini bekliyoruz.
+    // ilanları çekme kısmı
+    // not: async await kullandım çünkü verinin gelmesi uzun sürebiliyor hata vermesin diye
     async function loadIlanlar(filters = {}) {
         // Eğer div yoksa (mesela profil sayfasındaysak) boşuna çalıştırmayalım hata vermesin
         if (!listesiContainer) return; 
 
-        // Yükleniyor yazısı, hoca "veri geç gelirse ne oluyor" derse burayı gösterirsin
+        // veri gelene kadar loading falan göstersin
         listesiContainer.innerHTML = '<div class="loading">İlanlar aranıyor...</div>';
 
         // Filtreleri toparlıyoruz. Eğer boş gelirse varsayılan olarak 'Tümü' alıyor
@@ -53,9 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return skills.join(', ');
     };
 
-    // İlan HTML'ini oluştur
-    // Hoca Sorarsa: Veritabanından gelen her ilan objesini alıp ekranda bir div kartı (job-card)
-    // içerisine yerleştiriyoruz (DOM Manipülasyonu).
+    // arayüzde ilanları gösterme (dom manipülasyonu)
     async function renderIlanlar(ilanlar) {
         listesiContainer.innerHTML = '';
         const user = await API.getCurrentUser();
@@ -74,8 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ilan.aranan_yetenekler = window.getDefaultSkills(ilan.kategori, ilan.pozisyon);
             }
 
-            // Eşleşme Oranı Hesaplama/Simülasyonu (SCRUM-25)
-            // Backend'den matchRate gelirse onu kullanır, gelmezse kullanıcı yeteneklerine göre simüle eder
+            // eşleşme algoritması - yeteneklere göre simüle ediyoruz
             let matchRate = ilan.matchRate;
             
             if (matchRate === undefined && user && user.rol === 'stajyer') {
@@ -137,8 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // İlan Detayını Aç (Modalı gösteren kısım)
-    // Hoca Sorarsa: Sadece giriş yapanlar ilan detayını görebilsin diye burada auth (kimlik) kontrolü yapıyorum.
+    // ilana tıklanınca detayı çıksın (sadece giriş yapanlar için)
     window.openDetay = async function(id) {
         const user = await API.getCurrentUser();
         if (!user) {
@@ -226,9 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Başvuru Yapma Olayı (SCRUM-49 & SCRUM-51)
-    // Hoca Sorarsa: Burada bir Event Listener var. Butona tıklanınca try-catch bloğu içinde
-    // api.js'teki basvuruYap metodunu çağırıyor. Animasyon sınıflarını (loading, success) burada ekliyoruz.
+    // başvuru yapma butonu
+    // try catch ile api'den istek atıyorum
     if (btnApply) {
         btnApply.addEventListener('click', async () => {
             if (!currentJobId) return;
@@ -274,9 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Arama ve Filtreleme İşlemleri 
-    // Hoca "Debounce nedir?" derse: Kullanıcı her harf yazdığında sürekli veritabanına sorgu atmasın diye, 
-    // yazmayı bitirdikten 300 milisaniye sonra sorgu atmasını sağlayan performans optimizasyonu.
+    // debounce işlemi: her harfe basıldığında istek atmasın diye 300ms falan bekletiyorum
     let searchTimeout;
     const searchInput = document.getElementById('searchInput');
     const kategoriFilter = document.getElementById('kategoriFilter');

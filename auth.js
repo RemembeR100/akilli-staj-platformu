@@ -1,20 +1,7 @@
-/**
- * auth.js
- * Sayfalardaki oturum yönetimini ve navbar güncellemelerini sağlar.
- * Ayrıca SCRUM-62 kapsamında modern UX bildirim, onay penceresi ve form doğrulama sistemlerini tanımlar.
- * Supabase Auth entegrasyonu ile çalışır.
- */
+// kullanıcı giriş çıkış ve bildirim fonksiyonları
+// sitedeki uyarıları falan burdan ayarlıyorum
 
-// ==========================================================================
-// GLOBAL UX UTILITIES (SCRUM-62)
-// ==========================================================================
-
-/**
- * Modern Toast Bildirimi Gösterir
- * @param {string} message - Gösterilecek mesaj metni
- * @param {string} type - 'success' | 'error' | 'info' | 'warning'
- * @param {number} duration - Ekranda kalma süresi (ms)
- */
+// sağ altta çıkan bildirimler için
 window.showToast = function(message, type = 'info', duration = 4000) {
     let container = document.querySelector('.toast-container');
     if (!container) {
@@ -63,13 +50,7 @@ window.showToast = function(message, type = 'info', duration = 4000) {
     });
 };
 
-/**
- * Modern Asenkron Onay (Confirm) Modalı Gösterir
- * @param {string} title - Başlık
- * @param {string} message - Soru metni
- * @param {boolean} isDanger - Tehlikeli (Kırmızı) buton olsun mu?
- * @returns {Promise<boolean>}
- */
+// evet hayır sorusu sormak için onay kutusu
 window.showConfirm = function(title, message, isDanger = false) {
     return new Promise((resolve) => {
         const overlay = document.createElement('div');
@@ -117,7 +98,7 @@ window.showConfirm = function(title, message, isDanger = false) {
 };
 
 /**
- * Form Giriş Kontrolü ve Form İçi Anlık Hata Bildirimi (Field Validation)
+ * formlarda hata varsa göstermek için
  */
 window.FormValidation = {
     /**
