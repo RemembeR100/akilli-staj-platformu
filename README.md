@@ -31,6 +31,15 @@ Projede Node.js, PHP veya Python gibi bir backend sunucusu kullanılmamıştır.
 2. `index.html` dosyasını modern bir web tarayıcısında (Chrome, Firefox, Edge, Safari vb.) açın.
 3. Uygulama ilk açıldığında `api.js` veritabanını otomatik oluşturacak ve test verilerini yükleyecektir.
 
+## 👥 Proje Ekibi
+
+Bu proje, aşağıdaki ekip üyeleri tarafından geliştirilmiştir:
+
+- **Kaan**: Backend API Entegrasyonları, Akıllı Eşleştirme Algoritması ve Güvenlik (SHA-256, XSS).
+- **Fırat**: Frontend Geliştirme ve Sistem Testleri.
+- **Mehmet**: Veritabanı Mimarisi ve Yönetimi.
+- **Batuhan**: Frontend Geliştirme ve UI/UX Tasarımı.
+
 ## 👨‍💻 Test Kullanıcıları
 
 Yeni öğrenci (Stajyer) veya şirket (Kurumsal) hesaplarını "Kayıt Ol" sayfasından anında oluşturabilirsiniz.
